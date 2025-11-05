@@ -1,0 +1,233 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Coffee, ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface PublicHeaderProps {
+  cartItemCount?: number;
+  onCartClick?: () => void;
+}
+
+export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userName, setUserName] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Verificar si hay usuario autenticado
+    const checkAuth = () => {
+      const usuario = localStorage.getItem("usuario");
+      if (usuario) {
+        try {
+          const userData = JSON.parse(usuario);
+          setIsAuthenticated(true);
+          setUserName(userData.nombre || userData.email);
+        } catch (e) {
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUserName("");
+      }
+    };
+    
+    checkAuth();
+    
+    // Escuchar cambios en localStorage
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("authChange", handleStorageChange);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("authChange", handleStorageChange);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("usuario");
+    setIsAuthenticated(false);
+    setUserName("");
+    // Disparar evento personalizado para actualizar otros componentes
+    window.dispatchEvent(new Event("authChange"));
+    toast({
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión correctamente",
+    });
+    router.push("/");
+  };
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between">
+          {/* Logo - Optimizado para móvil */}
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0 min-w-0">
+            <div className="relative flex-shrink-0">
+              <Coffee className="h-6 w-6 sm:h-8 sm:w-8 text-primary transition-transform group-hover:scale-110" aria-hidden="true" />
+              <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-3 sm:w-3 bg-primary rounded-full animate-pulse" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-base sm:text-xl font-bold text-gray-900 leading-tight">Eventos</span>
+              <span className="text-sm sm:text-lg italic text-primary -mt-0.5 sm:-mt-1 leading-tight">Salome</span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              href="/"
+              className="text-sm font-medium text-gray-700 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+            >
+              Inicio
+            </Link>
+            <Link
+              href="/#menu"
+              className="text-sm font-medium text-gray-700 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+            >
+              Menú
+            </Link>
+            <Link
+              href="/#contacto"
+              className="text-sm font-medium text-gray-700 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+            >
+              Contacto
+            </Link>
+          </nav>
+
+          {/* Actions - Optimizado para móvil */}
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            {/* Cart Button - Siempre visible */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative h-10 w-10 sm:h-11 sm:w-11"
+              onClick={onCartClick}
+              disabled={cartItemCount === 0}
+              title={cartItemCount === 0 ? "Tu carrito está vacío" : "Ver carrito"}
+            >
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-primary text-white text-[10px] sm:text-xs flex items-center justify-center font-bold">
+                  {cartItemCount > 9 ? "9+" : cartItemCount}
+                </span>
+              )}
+            </Button>
+
+            {/* Auth Buttons */}
+            {isAuthenticated ? (
+              <div className="hidden sm:flex items-center gap-2">
+                <Link href="/mi-cuenta">
+                  <Button variant="ghost" className="gap-2 h-10 sm:h-11">
+                    <User className="h-4 w-4" />
+                    <span className="hidden lg:inline text-sm">{userName}</span>
+                  </Button>
+                </Link>
+                <Button variant="outline" size="icon" className="h-10 w-10 sm:h-11 sm:w-11" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm" className="h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-3">
+                    Iniciar Sesión
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm" className="h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-3">Registrarse</Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden h-10 w-10 sm:h-11 sm:w-11"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            >
+              {isMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Menu - Mejorado */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t bg-white">
+            <nav className="flex flex-col gap-1 px-2">
+              <Link
+                href="/"
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:text-primary hover:bg-primary/5 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Inicio
+              </Link>
+              <Link
+                href="/#menu"
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:text-primary hover:bg-primary/5 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Menú
+              </Link>
+              <Link
+                href="/#contacto"
+                className="px-4 py-3 text-base font-medium text-gray-700 hover:text-primary hover:bg-primary/5 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contacto
+              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link href="/mi-cuenta" className="px-4 py-3 text-base font-medium text-gray-700 hover:text-primary hover:bg-primary/5 transition-colors rounded-lg" onClick={() => setIsMenuOpen(false)}>
+                    <div className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      <span>Mi Cuenta</span>
+                    </div>
+                  </Link>
+                  <Button variant="outline" className="w-full mt-2 h-11" onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Cerrar Sesión
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="pt-2 mt-2 border-t">
+                    <Link href="/login">
+                      <Button variant="outline" className="w-full h-11 mb-2" onClick={() => setIsMenuOpen(false)}>
+                        Iniciar Sesión
+                      </Button>
+                    </Link>
+                    <Link href="/register">
+                      <Button className="w-full h-11" onClick={() => setIsMenuOpen(false)}>
+                        Registrarse
+                      </Button>
+                    </Link>
+                  </div>
+                </>
+              )}
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
