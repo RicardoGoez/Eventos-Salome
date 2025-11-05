@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState, useCallback } from "react";
+import { useMemo, useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MeseroSidebar } from "@/components/mesero-sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMeseroData } from "@/contexts/mesero-data-context";
 
-export default function PedidosMeseroPage() {
+function PedidosMeseroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -317,6 +317,27 @@ export default function PedidosMeseroPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function PedidosMeseroPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen">
+        <MeseroSidebar />
+        <main className="flex-1 p-6">
+          <div className="flex items-center justify-center h-full">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle>Cargando...</CardTitle>
+              </CardHeader>
+            </Card>
+          </div>
+        </main>
+      </div>
+    }>
+      <PedidosMeseroContent />
+    </Suspense>
   );
 }
 
