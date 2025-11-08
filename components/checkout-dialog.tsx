@@ -10,11 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, DollarSign, Banknote, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { CreditCard, DollarSign, Banknote, Loader2, AlertCircle, CheckCircle2, ShoppingCart, Circle } from "lucide-react";
 import { Producto, MetodoPago } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import { validateCardNumber, validateExpiryDate, validateCVV, validateCardName, detectCardType } from "@/lib/utils/validation";
-import { formatCOP } from "@/lib/utils";
+import { formatCOP, cn } from "@/lib/utils";
 
 interface CartItem {
   producto: Producto;
@@ -321,6 +321,72 @@ export function CheckoutDialog({
 
   const MetodoPagoIcon = metodoPagoIcons[metodoPago];
 
+  // Stepper steps
+  const steps = [
+    { id: "payment", label: "Resumen", icon: ShoppingCart },
+    { id: "processing", label: "Procesando", icon: Loader2 },
+    { id: "success", label: "Confirmación", icon: CheckCircle2 },
+  ];
+
+  const currentStepIndex = steps.findIndex(s => s.id === step);
+
+  // Stepper Component
+  const Stepper = () => (
+    <div className="mb-6">
+      <div className="flex items-center justify-between">
+        {steps.map((stepItem, index) => {
+          const StepIcon = stepItem.icon;
+          const isActive = index === currentStepIndex;
+          const isCompleted = index < currentStepIndex;
+          const isLast = index === steps.length - 1;
+
+          return (
+            <div key={stepItem.id} className="flex items-center flex-1">
+              <div className="flex flex-col items-center flex-1">
+                <div
+                  className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300",
+                    isCompleted && "bg-primary border-primary text-white",
+                    isActive && !isCompleted && "border-primary bg-primary/10 text-primary",
+                    !isActive && !isCompleted && "border-gray-300 bg-white text-gray-400"
+                  )}
+                  aria-current={isActive ? "step" : undefined}
+                >
+                  {isCompleted ? (
+                    <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                  ) : isActive && stepItem.id === "processing" ? (
+                    <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <StepIcon className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "mt-2 text-xs font-medium transition-colors",
+                    isActive && "text-primary",
+                    isCompleted && "text-primary",
+                    !isActive && !isCompleted && "text-gray-500"
+                  )}
+                >
+                  {stepItem.label}
+                </span>
+              </div>
+              {!isLast && (
+                <div
+                  className={cn(
+                    "flex-1 h-0.5 mx-2 transition-colors duration-300",
+                    isCompleted ? "bg-primary" : "bg-gray-300"
+                  )}
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChangeAction}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full p-4 sm:p-6">
@@ -330,6 +396,9 @@ export function CheckoutDialog({
             Completa la información para finalizar tu pedido
           </DialogDescription>
         </DialogHeader>
+
+        {/* Stepper */}
+        <Stepper />
 
         {step === "payment" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -637,19 +706,20 @@ export function CheckoutDialog({
               </Card>
 
               <Button
-                className="w-full"
+                className="w-full focus:ring-2 focus:ring-primary"
                 size="lg"
                 onClick={handleSubmit}
                 disabled={isProcessing}
+                aria-label="Confirmar pedido y proceder al pago"
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                     Procesando...
                   </>
                 ) : (
                   <>
-                    <MetodoPagoIcon className="mr-2 h-4 w-4" />
+                    <MetodoPagoIcon className="mr-2 h-4 w-4" aria-hidden="true" />
                     Confirmar Pedido - {formatCOP(total)}
                   </>
                 )}

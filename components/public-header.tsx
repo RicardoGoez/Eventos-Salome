@@ -67,38 +67,53 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
-      <div className="container mx-auto px-3 sm:px-4">
-        <div className="flex h-14 sm:h-16 items-center justify-between">
-          {/* Logo - Optimizado para móvil */}
-          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0 min-w-0">
-            <div className="relative flex-shrink-0">
-              <Coffee className="h-6 w-6 sm:h-8 sm:w-8 text-primary transition-transform group-hover:scale-110" aria-hidden="true" />
-              <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-3 sm:w-3 bg-primary rounded-full animate-pulse" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-base sm:text-xl font-bold text-gray-900 leading-tight">Eventos</span>
-              <span className="text-sm sm:text-lg italic text-primary -mt-0.5 sm:-mt-1 leading-tight">Salome</span>
-            </div>
-          </Link>
+    <>
+      {/* Skip Links para accesibilidad */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      >
+        Saltar al contenido principal
+      </a>
+      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm" role="banner">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            {/* Logo - Optimizado para móvil */}
+            <Link 
+              href="/" 
+              className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0 min-w-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+              aria-label="Eventos Salome - Inicio"
+            >
+              <div className="relative flex-shrink-0" aria-hidden="true">
+                <Coffee className="h-6 w-6 sm:h-8 sm:w-8 text-primary transition-transform group-hover:scale-110" />
+                <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-3 sm:w-3 bg-primary rounded-full animate-pulse" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-base sm:text-xl font-bold text-gray-900 leading-tight">Eventos</span>
+                <span className="text-sm sm:text-lg italic text-primary -mt-0.5 sm:-mt-1 leading-tight">Salome</span>
+              </div>
+            </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6" role="navigation" aria-label="Navegación principal">
             <Link
               href="/"
               className="text-sm font-medium text-gray-700 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+              aria-label="Ir a página de inicio"
             >
               Inicio
             </Link>
             <Link
               href="/#menu"
               className="text-sm font-medium text-gray-700 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+              aria-label="Ir a sección de menú"
             >
               Menú
             </Link>
             <Link
               href="/#contacto"
               className="text-sm font-medium text-gray-700 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+              aria-label="Ir a sección de contacto"
             >
               Contacto
             </Link>
@@ -110,14 +125,18 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
             <Button
               variant="outline"
               size="icon"
-              className="relative h-10 w-10 sm:h-11 sm:w-11"
+              className="relative h-10 w-10 sm:h-11 sm:w-11 focus:ring-2 focus:ring-primary"
               onClick={onCartClick}
               disabled={cartItemCount === 0}
-              title={cartItemCount === 0 ? "Tu carrito está vacío" : "Ver carrito"}
+              aria-label={cartItemCount === 0 ? "Tu carrito está vacío" : `Ver carrito, ${cartItemCount} ${cartItemCount === 1 ? "producto" : "productos"}`}
+              aria-live="polite"
             >
-              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-primary text-white text-[10px] sm:text-xs flex items-center justify-center font-bold">
+                <span 
+                  className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-primary text-white text-[10px] sm:text-xs flex items-center justify-center font-bold"
+                  aria-label={`${cartItemCount} ${cartItemCount === 1 ? "producto" : "productos"} en el carrito`}
+                >
                   {cartItemCount > 9 ? "9+" : cartItemCount}
                 </span>
               )}
@@ -126,25 +145,32 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
             {/* Auth Buttons */}
             {isAuthenticated ? (
               <div className="hidden sm:flex items-center gap-2">
-                <Link href="/mi-cuenta">
-                  <Button variant="ghost" className="gap-2 h-10 sm:h-11">
-                    <User className="h-4 w-4" />
+                <Link href="/mi-cuenta" aria-label="Ir a mi cuenta">
+                  <Button variant="ghost" className="gap-2 h-10 sm:h-11 focus:ring-2 focus:ring-primary">
+                    <User className="h-4 w-4" aria-hidden="true" />
                     <span className="hidden lg:inline text-sm">{userName}</span>
+                    <span className="sr-only">Mi cuenta, usuario {userName}</span>
                   </Button>
                 </Link>
-                <Button variant="outline" size="icon" className="h-10 w-10 sm:h-11 sm:w-11" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-10 w-10 sm:h-11 sm:w-11 focus:ring-2 focus:ring-primary" 
+                  onClick={handleLogout}
+                  aria-label="Cerrar sesión"
+                >
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm" className="h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-3">
+                <Link href="/login" aria-label="Ir a página de inicio de sesión">
+                  <Button variant="ghost" size="sm" className="h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-3 focus:ring-2 focus:ring-primary">
                     Iniciar Sesión
                   </Button>
                 </Link>
-                <Link href="/register">
-                  <Button size="sm" className="h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-3">Registrarse</Button>
+                <Link href="/register" aria-label="Ir a página de registro">
+                  <Button size="sm" className="h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-3 focus:ring-2 focus:ring-primary">Registrarse</Button>
                 </Link>
               </div>
             )}
@@ -153,14 +179,16 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden h-10 w-10 sm:h-11 sm:w-11"
+              className="md:hidden h-10 w-10 sm:h-11 sm:w-11 focus:ring-2 focus:ring-primary"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-label={isMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
             >
               {isMenuOpen ? (
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               ) : (
-                <Menu className="h-5 w-5" />
+                <Menu className="h-5 w-5" aria-hidden="true" />
               )}
             </Button>
           </div>
@@ -168,7 +196,7 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
 
         {/* Mobile Menu - Mejorado */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t bg-white">
+          <div className="md:hidden py-4 border-t bg-white" id="mobile-menu" role="navigation" aria-label="Menú de navegación móvil">
             <nav className="flex flex-col gap-1 px-2">
               <Link
                 href="/"
@@ -228,6 +256,7 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
         )}
       </div>
     </header>
+    </>
   );
 }
 

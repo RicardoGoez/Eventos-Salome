@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Coffee } from "lucide-react";
+import { Coffee, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 function RegisterForm() {
   const router = useRouter();
@@ -22,32 +23,113 @@ function RegisterForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ 
+    nombre?: string; 
+    email?: string; 
+    password?: string; 
+    confirmPassword?: string;
+  }>({});
+  const [touched, setTouched] = useState<{ 
+    nombre: boolean; 
+    email: boolean; 
+    password: boolean; 
+    confirmPassword: boolean;
+  }>({ nombre: false, email: false, password: false, confirmPassword: false });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Verificar si viene del checkout
   const fromCheckout = searchParams.get("from") === "checkout";
 
+  // Validación en tiempo real
+  const validateNombre = (value: string): string => {
+    if (!value.trim()) {
+      return "El nombre es requerido";
+    }
+    if (value.trim().length < 2) {
+      return "El nombre debe tener al menos 2 caracteres";
+    }
+    return "";
+  };
+
+  const validateEmail = (value: string): string => {
+    if (!value.trim()) {
+      return "El email es requerido";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      return "El email no es válido";
+    }
+    return "";
+  };
+
+  const validatePassword = (value: string): string => {
+    if (!value) {
+      return "La contraseña es requerida";
+    }
+    if (value.length < 6) {
+      return "La contraseña debe tener al menos 6 caracteres";
+    }
+    return "";
+  };
+
+  const validateConfirmPassword = (value: string, password: string): string => {
+    if (!value) {
+      return "Confirma tu contraseña";
+    }
+    if (value !== password) {
+      return "Las contraseñas no coinciden";
+    }
+    return "";
+  };
+
+  const handleFieldChange = (field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setError("");
+    
+    if (touched[field]) {
+      let error = "";
+      switch (field) {
+        case 'nombre':
+          error = validateNombre(value);
+          break;
+        case 'email':
+          error = validateEmail(value);
+          break;
+        case 'password':
+          error = validatePassword(value);
+          // Si cambia la contraseña, revalidar confirmPassword
+          if (touched.confirmPassword && formData.confirmPassword) {
+            const confirmError = validateConfirmPassword(formData.confirmPassword, value);
+            setFieldErrors(prev => ({ ...prev, confirmPassword: confirmError }));
+          }
+          break;
+        case 'confirmPassword':
+          error = validateConfirmPassword(value, formData.password);
+          break;
+      }
+      setFieldErrors(prev => ({ ...prev, [field]: error }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    // Validaciones
-    if (!formData.nombre.trim()) {
-      setError("El nombre es requerido");
-      return;
-    }
-
-    if (!formData.email.trim()) {
-      setError("El email es requerido");
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
+    setTouched({ nombre: true, email: true, password: true, confirmPassword: true });
+    
+    // Validar todos los campos
+    const nombreError = validateNombre(formData.nombre);
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const confirmPasswordError = validateConfirmPassword(formData.confirmPassword, formData.password);
+    
+    if (nombreError || emailError || passwordError || confirmPasswordError) {
+      setFieldErrors({
+        nombre: nombreError,
+        email: emailError,
+        password: passwordError,
+        confirmPassword: confirmPasswordError,
+      });
       return;
     }
 
@@ -160,72 +242,192 @@ function RegisterForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre Completo</Label>
-              <Input
-                id="nombre"
-                type="text"
-                placeholder="Juan Pérez"
-                value={formData.nombre}
-                onChange={(e) =>
-                  setFormData({ ...formData, nombre: e.target.value })
-                }
-                required
-              />
+              <Label htmlFor="nombre">
+                Nombre Completo <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="nombre"
+                  type="text"
+                  placeholder="Juan Pérez"
+                  value={formData.nombre}
+                  onChange={(e) => handleFieldChange('nombre', e.target.value)}
+                  onBlur={() => {
+                    setTouched(prev => ({ ...prev, nombre: true }));
+                    const error = validateNombre(formData.nombre);
+                    setFieldErrors(prev => ({ ...prev, nombre: error }));
+                  }}
+                  className={cn(
+                    touched.nombre && fieldErrors.nombre && "border-destructive focus-visible:ring-destructive",
+                    touched.nombre && !fieldErrors.nombre && formData.nombre && "border-success"
+                  )}
+                  aria-invalid={touched.nombre && !!fieldErrors.nombre}
+                  aria-describedby={touched.nombre && fieldErrors.nombre ? "nombre-error" : undefined}
+                  required
+                />
+                {touched.nombre && !fieldErrors.nombre && formData.nombre && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-success" aria-hidden="true" />
+                )}
+              </div>
+              {touched.nombre && fieldErrors.nombre && (
+                <p id="nombre-error" className="text-xs text-destructive flex items-center gap-1" role="alert">
+                  <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                  {fieldErrors.nombre}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="tu@email.com"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-              />
+              <Label htmlFor="email">
+                Email <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={formData.email}
+                  onChange={(e) => handleFieldChange('email', e.target.value)}
+                  onBlur={() => {
+                    setTouched(prev => ({ ...prev, email: true }));
+                    const error = validateEmail(formData.email);
+                    setFieldErrors(prev => ({ ...prev, email: error }));
+                  }}
+                  className={cn(
+                    touched.email && fieldErrors.email && "border-destructive focus-visible:ring-destructive",
+                    touched.email && !fieldErrors.email && formData.email && "border-success"
+                  )}
+                  aria-invalid={touched.email && !!fieldErrors.email}
+                  aria-describedby={touched.email && fieldErrors.email ? "email-error" : undefined}
+                  required
+                />
+                {touched.email && !fieldErrors.email && formData.email && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-success" aria-hidden="true" />
+                )}
+              </div>
+              {touched.email && fieldErrors.email && (
+                <p id="email-error" className="text-xs text-destructive flex items-center gap-1" role="alert">
+                  <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Mínimo 6 caracteres"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                required
-                minLength={6}
-              />
+              <Label htmlFor="password">
+                Contraseña <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mínimo 6 caracteres"
+                  value={formData.password}
+                  onChange={(e) => handleFieldChange('password', e.target.value)}
+                  onBlur={() => {
+                    setTouched(prev => ({ ...prev, password: true }));
+                    const error = validatePassword(formData.password);
+                    setFieldErrors(prev => ({ ...prev, password: error }));
+                  }}
+                  className={cn(
+                    "pr-10",
+                    touched.password && fieldErrors.password && "border-destructive focus-visible:ring-destructive",
+                    touched.password && !fieldErrors.password && formData.password && "border-success"
+                  )}
+                  aria-invalid={touched.password && !!fieldErrors.password}
+                  aria-describedby={touched.password && fieldErrors.password ? "password-error" : undefined}
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+                {touched.password && !fieldErrors.password && formData.password && (
+                  <CheckCircle2 className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 text-success" aria-hidden="true" />
+                )}
+              </div>
+              {touched.password && fieldErrors.password && (
+                <p id="password-error" className="text-xs text-destructive flex items-center gap-1" role="alert">
+                  <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirma tu contraseña"
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
-                required
-                minLength={6}
-              />
+              <Label htmlFor="confirmPassword">
+                Confirmar Contraseña <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirma tu contraseña"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                  onBlur={() => {
+                    setTouched(prev => ({ ...prev, confirmPassword: true }));
+                    const error = validateConfirmPassword(formData.confirmPassword, formData.password);
+                    setFieldErrors(prev => ({ ...prev, confirmPassword: error }));
+                  }}
+                  className={cn(
+                    "pr-10",
+                    touched.confirmPassword && fieldErrors.confirmPassword && "border-destructive focus-visible:ring-destructive",
+                    touched.confirmPassword && !fieldErrors.confirmPassword && formData.confirmPassword && formData.confirmPassword === formData.password && "border-success"
+                  )}
+                  aria-invalid={touched.confirmPassword && !!fieldErrors.confirmPassword}
+                  aria-describedby={touched.confirmPassword && fieldErrors.confirmPassword ? "confirmPassword-error" : undefined}
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-label={showConfirmPassword ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+                {touched.confirmPassword && !fieldErrors.confirmPassword && formData.confirmPassword && formData.confirmPassword === formData.password && (
+                  <CheckCircle2 className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 text-success" aria-hidden="true" />
+                )}
+              </div>
+              {touched.confirmPassword && fieldErrors.confirmPassword && (
+                <p id="confirmPassword-error" className="text-xs text-destructive flex items-center gap-1" role="alert">
+                  <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                  {fieldErrors.confirmPassword}
+                </p>
+              )}
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded">
-                {error}
+              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded flex items-start gap-2" role="alert">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <span>{error}</span>
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button 
+              type="submit" 
+              className="w-full focus:ring-2 focus:ring-primary" 
+              disabled={loading || (touched.nombre && !!fieldErrors.nombre) || (touched.email && !!fieldErrors.email) || (touched.password && !!fieldErrors.password) || (touched.confirmPassword && !!fieldErrors.confirmPassword)}
+              aria-label="Registrarse"
+            >
               {loading ? "Registrando..." : "Registrarse"}
             </Button>
 

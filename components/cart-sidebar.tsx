@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -10,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { CheckoutDialog } from "@/components/checkout-dialog";
 import { formatCOP } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface CartItem {
   producto: Producto;
@@ -38,6 +40,7 @@ export function CartSidebar({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.producto.precio * item.cantidad,
@@ -84,10 +87,10 @@ export function CartSidebar({
       <SheetContent className="w-full sm:max-w-lg flex flex-col">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart className="h-5 w-5" aria-hidden="true" />
             Mi Carrito
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription aria-live="polite" role="status">
             {cartItems.length} {cartItems.length === 1 ? "producto" : "productos"} en tu carrito
           </SheetDescription>
         </SheetHeader>
@@ -103,22 +106,29 @@ export function CartSidebar({
             </div>
           ) : (
             <div className="space-y-4">
-              {cartItems.map((item) => (
+              {cartItems.map((item) => {
+                const isRemoving = removingItems.has(item.producto.id);
+                return (
                 <div
                   key={item.producto.id}
-                  className="flex gap-4 p-4 border rounded-lg bg-white"
+                  className={cn(
+                    "flex gap-4 p-4 border rounded-lg bg-white transition-all duration-300",
+                    isRemoving && "opacity-0 scale-95 translate-x-4"
+                  )}
                 >
                   {/* Imagen */}
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                     {item.producto.imagen ? (
-                      <img
+                      <Image
                         src={item.producto.imagen}
                         alt={item.producto.nombre}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="80px"
+                        className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingCart className="h-8 w-8 text-gray-300" aria-hidden="true" />
+                      <div className="w-full h-full flex items-center justify-center" aria-hidden="true">
+                        <ShoppingCart className="h-8 w-8 text-gray-300" />
                       </div>
                     )}
                   </div>
@@ -134,47 +144,62 @@ export function CartSidebar({
 
                     {/* Controles */}
                     <div className="flex items-center gap-2 mt-3">
-                      <div className="flex items-center gap-2 border rounded-lg">
+                      <div className="flex items-center gap-2 border rounded-lg" role="group" aria-label="Controles de cantidad">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-7 w-7 focus:ring-2 focus:ring-primary"
                           onClick={() =>
                             onUpdateQuantityAction(
                               item.producto.id,
                               Math.max(1, item.cantidad - 1)
                             )
                           }
+                          aria-label={`Disminuir cantidad de ${item.producto.nombre}`}
+                          disabled={item.cantidad <= 1}
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-3 w-3" aria-hidden="true" />
                         </Button>
-                        <span className="w-8 text-center text-sm font-medium">
+                        <span className="w-8 text-center text-sm font-medium" aria-label={`Cantidad: ${item.cantidad}`} role="status">
                           {item.cantidad}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-7 w-7 focus:ring-2 focus:ring-primary"
                           onClick={() =>
                             onUpdateQuantityAction(item.producto.id, item.cantidad + 1)
                           }
+                          aria-label={`Aumentar cantidad de ${item.producto.nombre}`}
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3 w-3" aria-hidden="true" />
                         </Button>
                       </div>
 
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={() => setItemToRemove(item.producto.id)}
+                        className="h-7 w-7 text-destructive hover:bg-destructive/10 focus:ring-2 focus:ring-destructive"
+                        onClick={() => {
+                          setRemovingItems(prev => new Set(prev).add(item.producto.id));
+                          setTimeout(() => {
+                            setItemToRemove(item.producto.id);
+                            setRemovingItems(prev => {
+                              const next = new Set(prev);
+                              next.delete(item.producto.id);
+                              return next;
+                            });
+                          }, 300);
+                        }}
+                        aria-label={`Eliminar ${item.producto.nombre} del carrito`}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -199,41 +224,44 @@ export function CartSidebar({
 
             {isAuthenticated ? (
               <Button
-                className="w-full"
+                className="w-full focus:ring-2 focus:ring-primary"
                 size="lg"
                 onClick={handleCheckout}
                 disabled={isProcessing}
+                aria-label="Proceder al pago"
               >
                 Proceder al Pago
               </Button>
             ) : (
               <div className="space-y-3">
                 <Button
-                  className="w-full"
+                  className="w-full focus:ring-2 focus:ring-primary"
                   size="lg"
                   onClick={() => {
                     localStorage.setItem("redirectAfterLogin", "/");
                     onOpenChangeAction(false);
                     router.push("/register?from=checkout");
                   }}
+                  aria-label="Crear cuenta y continuar con el pedido"
                 >
                   Crear Cuenta y Continuar
                 </Button>
                 
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full focus:ring-2 focus:ring-primary"
                   size="lg"
-                onClick={() => {
-                  localStorage.setItem("redirectAfterLogin", "/");
-                  onOpenChangeAction(false);
+                  onClick={() => {
+                    localStorage.setItem("redirectAfterLogin", "/");
+                    onOpenChangeAction(false);
                     router.push("/login?from=checkout");
                   }}
+                  aria-label="Iniciar sesión para continuar con el pedido"
                 >
                   Ya tengo cuenta - Iniciar Sesión
                 </Button>
 
-                <p className="text-xs text-center text-gray-500" aria-live="polite">
+                <p className="text-xs text-center text-gray-500" aria-live="polite" role="status">
                   Regístrate o inicia sesión para realizar tu pedido. Tu carrito se mantendrá guardado.
                 </p>
               </div>

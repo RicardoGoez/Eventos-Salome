@@ -224,7 +224,7 @@ function MiCuentaPageContent() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <PublicHeader />
       
-      <div className="container mx-auto max-w-6xl py-6 sm:py-8 px-4 sm:px-6">
+      <div className="container mx-auto max-w-6xl py-6 sm:py-8 px-4 sm:px-6" role="main" id="main-content">
         <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Mi Cuenta</h1>

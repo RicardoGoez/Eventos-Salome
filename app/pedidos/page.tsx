@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Sidebar } from "@/components/sidebar";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -175,10 +176,11 @@ function PedidosPageContent() {
   return (
     <div className="flex min-h-screen lg:h-screen">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0">
+      <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0" role="main" id="main-content">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">Pedidos</h1>
+          <Breadcrumb items={[{ label: "Pedidos" }]} />
+          <div className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pedidos</h1>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Sidebar } from "@/components/sidebar";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, ShoppingCart, TrendingUp, AlertTriangle, Users, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -184,97 +185,98 @@ function AdminDashboardPageContent() {
   return (
     <div className="flex min-h-screen lg:h-screen">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0">
+      <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0" role="main" id="main-content">
         <div className="mx-auto max-w-7xl">
-          <h1 className="mb-8 text-3xl font-bold text-dark">
+          <Breadcrumb items={[{ label: "Dashboard" }]} />
+          <h1 className="mb-4 sm:mb-6 md:mb-8 text-2xl sm:text-3xl font-bold text-dark">
             Dashboard - Eventos <span className="italic">Salome</span>
           </h1>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <Card>
+          <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6">
+            <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-900">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-900">
                   Total Productos
                 </CardTitle>
-                <Package className="h-4 w-4 text-gray-600" />
+                <Package className="h-4 w-4 text-gray-600" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stats.productos}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.productos}</div>
                 <p className="text-xs text-gray-700">
                   Productos disponibles
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-900">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-900">
                   Pedidos Pendientes
                 </CardTitle>
-                <ShoppingCart className="h-4 w-4 text-gray-600" />
+                <ShoppingCart className="h-4 w-4 text-gray-600" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stats.pedidosPendientes}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.pedidosPendientes}</div>
                 <p className="text-xs text-gray-700">
                   En espera de preparación
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-900">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-900">
                   Ingresos del Día
                 </CardTitle>
-                <TrendingUp className="h-4 w-4 text-gray-600" />
+                <TrendingUp className="h-4 w-4 text-gray-600" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">${stats.ingresosDia.toFixed(2)}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">${stats.ingresosDia.toFixed(2)}</div>
                 <p className="text-xs text-gray-700">
                   Total de ventas hoy
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-900">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-900">
                   Stock Bajo
                 </CardTitle>
-                <AlertTriangle className="h-4 w-4 text-warning" />
+                <AlertTriangle className="h-4 w-4 text-warning" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stats.stockBajo}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.stockBajo}</div>
                 <p className="text-xs text-gray-700">
                   Items con stock mínimo
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-900">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-900">
                   Total Usuarios
                 </CardTitle>
-                <Users className="h-4 w-4 text-gray-600" />
+                <Users className="h-4 w-4 text-gray-600" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stats.totalUsuarios}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalUsuarios}</div>
                 <p className="text-xs text-gray-700">
                   Usuarios registrados
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-900">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-900">
                   Pedidos Totales
                 </CardTitle>
-                <ShoppingCart className="h-4 w-4 text-gray-600" />
+                <ShoppingCart className="h-4 w-4 text-gray-600" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stats.pedidosTotales}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.pedidosTotales}</div>
                 <p className="text-xs text-gray-700">
                   Pedidos entregados
                 </p>
@@ -282,7 +284,7 @@ function AdminDashboardPageContent() {
             </Card>
           </div>
 
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Ventas Últimos 7 Días</CardTitle>
@@ -352,7 +354,7 @@ function AdminDashboardPageContent() {
             </Card>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

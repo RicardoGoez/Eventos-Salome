@@ -86,7 +86,7 @@ FROM (VALUES
   
   -- Chocolate y cacao
   ('Chocolate en polvo 1 kg', 'Mezcla premium para chocolatería y repostería. 1 kg.', 'INGREDIENTE', 42000, 30000, true, 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop'),
-  ('Cacao 70% 500 g', 'Cacao en polvo 70% sin azúcar. 500 g.', 'INGREDIENTE', 28000, 20000, true, 'https://images.unsplash.com/photo-1606313564200-e75d5e30476b?q=80&w=1200&auto=format&fit=crop'),
+  ('Cacao 70% 500 g', 'Cacao en polvo 70% sin azúcar. 500 g.', 'INGREDIENTE', 28000, 20000, true, 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop'),
   ('Salsa de chocolate 1 kg', 'Salsa para latte art y toppings. 1 kg.', 'INGREDIENTE', 36000, 25000, true, 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=1200&auto=format&fit=crop'),
   ('Chocolate negro 85% 200 g', 'Tableta de chocolate negro 85% cacao. 200 g.', 'INGREDIENTE', 32000, 22000, true, 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop'),
   

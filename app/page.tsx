@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import Image from "next/image";
 import { PublicHeader } from "@/components/public-header";
 import { ProductCard } from "@/components/product-card";
 import { CartSidebar } from "@/components/cart-sidebar";
@@ -179,43 +180,38 @@ function HomePageContent() {
         cartItemCount={cartItemCount}
         onCartClick={() => setIsCartOpen(true)}
       />
+      <main id="main-content" role="main">
 
-      {/* Hero Section con video de fondo (fuentes públicas) - Optimizado móvil */}
-      <section className="relative min-h-[60vh] sm:min-h-[65vh] md:min-h-[70vh] flex items-center px-4 sm:px-6 overflow-hidden">
-        {/* Video de fondo */}
-        {heroVideoUrl ? (
-          <video
-            className="absolute inset-0 w-full h-full object-cover"
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster={heroImageUrl}
-          >
-            <source src={heroVideoUrl} type="video/mp4" />
-          </video>
-        ) : (
-          <div
-            className="absolute inset-0 w-full h-full bg-center bg-cover"
-            style={{ backgroundImage: `url('${heroImageUrl}')` }}
+      {/* Hero Section con imagen de cafetería - Optimizado móvil */}
+      <section className="relative min-h-[60vh] sm:min-h-[65vh] md:min-h-[70vh] flex flex-col px-4 sm:px-6 overflow-hidden bg-gray-900">
+        {/* Imagen de cafetería como fondo */}
+        <div className="absolute inset-0 w-full h-full">
+          <Image
+            src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1470&auto=format&fit=crop"
+            alt="Interior acogedor de cafetería Eventos Salome"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
           />
-        )}
-        {/* Overlay - más oscuro para mejor contraste en móvil */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/75 to-black/50 md:from-black/60 md:to-black/30" />
+          {/* Overlay - más oscuro para mejor contraste */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+        </div>
+        
         {/* Contenido */}
-        <div className="relative z-10 container mx-auto max-w-6xl py-6 sm:py-10 md:py-12 px-4">
-          <div className="flex flex-col md:flex-row items-center gap-5 sm:gap-6 md:gap-8">
-            <div className="flex-1 text-center md:text-left w-full" data-reveal>
+        <div className="relative z-10 container mx-auto max-w-6xl py-6 sm:py-10 md:py-12 px-4 flex-1 flex flex-col justify-center">
+          <div className="flex flex-col items-center gap-5 sm:gap-6 md:gap-8">
+            <div className="text-center w-full" data-reveal>
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 text-white leading-[1.2] sm:leading-tight drop-shadow-lg">
                 Bienvenido a Eventos <span className="italic">Salome</span>
               </h1>
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 md:mb-6 text-white drop-shadow-md font-medium">
                 Sabores auténticos, momentos especiales
               </p>
-              <p className="text-sm sm:text-base md:text-lg mb-5 sm:mb-6 md:mb-8 text-white/95 max-w-2xl mx-auto md:mx-0 drop-shadow-sm leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg mb-5 sm:mb-6 md:mb-8 text-white/95 max-w-2xl mx-auto drop-shadow-sm leading-relaxed">
                 Descubre bebidas, comidas y postres elaborados con ingredientes frescos y de calidad.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   size="lg"
                   variant="secondary"
@@ -235,11 +231,6 @@ function HomePageContent() {
                 >
                   Ver Carrito
                 </Button>
-              </div>
-            </div>
-            <div className="flex-1 flex justify-center" data-reveal>
-              <div className="relative hidden md:block">
-                <Coffee className="h-64 w-64 text-white/30" />
               </div>
             </div>
           </div>
@@ -276,9 +267,10 @@ function HomePageContent() {
         </div>
       </section>
 
-      {/* Menú Section - Optimizado para 3 columnas en móvil */}
-      <section id="menu" className="py-6 sm:py-8 md:py-12 lg:py-16 px-3 sm:px-4 md:px-6">
-        <div className="container mx-auto max-w-7xl">
+      {/* Menú Section - Optimizado para ocupar toda la pantalla */}
+      <section id="menu" className="py-6 sm:py-8 md:py-12 lg:py-16 w-full bg-white">
+        {/* Header y Filtros - Con padding lateral */}
+        <div className="container mx-auto max-w-7xl px-3 sm:px-4 md:px-6">
           <div className="text-center mb-5 sm:mb-6 md:mb-8 lg:mb-12" data-reveal>
             <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1.5 sm:mb-2 md:mb-3 lg:mb-4">
               Nuestro Menú
@@ -290,7 +282,7 @@ function HomePageContent() {
 
           {/* Filtros y búsqueda - Organizados y compactos */}
           <div className="mb-4 sm:mb-5 md:mb-6 lg:mb-8 space-y-2.5 sm:space-y-3 md:space-y-4">
-            <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">Encuentra rápido lo que se te antoja</p>
+            <p className="text-center text-xs sm:text-sm md:text-base text-gray-600 font-medium">Encuentra rápido lo que se te antoja</p>
             
             {/* Barra de búsqueda - Compacta */}
             <div className="relative w-full max-w-md mx-auto px-1" data-reveal>
@@ -332,31 +324,33 @@ function HomePageContent() {
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Grid de productos - 3 columnas en móvil */}
+        {/* Grid de productos - Ocupa toda la pantalla */}
+        <div className="w-full px-2 sm:px-3 md:px-4 lg:px-6">
           {loading ? (
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3 lg:gap-4 xl:gap-6">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="border rounded-lg overflow-hidden">
-                  <div className="w-full aspect-[4/3] bg-gray-200 animate-pulse" />
-                  <div className="p-2 sm:p-2.5 md:p-3 lg:p-4 space-y-1.5 sm:space-y-2 md:space-y-3">
-                    <div className="h-3 sm:h-4 md:h-5 bg-gray-200 rounded animate-pulse w-3/4" />
-                    <div className="h-2.5 sm:h-3 md:h-4 bg-gray-200 rounded animate-pulse w-full" />
-                    <div className="h-2.5 sm:h-3 md:h-4 bg-gray-200 rounded animate-pulse w-2/3" />
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2 sm:gap-2.5 md:gap-3 lg:gap-4" role="status" aria-label="Cargando productos">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="border rounded-lg overflow-hidden bg-white animate-pulse">
+                  <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-200 to-gray-300" />
+                  <div className="p-2 sm:p-2.5 md:p-3 lg:p-4 space-y-2">
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-2.5 sm:h-3 bg-gray-200 rounded w-full" />
+                    <div className="h-2.5 sm:h-3 bg-gray-200 rounded w-2/3" />
                     <div className="flex flex-col gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                      <div className="h-7 sm:h-8 md:h-9 bg-gray-200 rounded animate-pulse w-full" />
-                      <div className="h-7 sm:h-8 md:h-9 bg-gray-200 rounded animate-pulse w-full" />
+                      <div className="h-7 sm:h-8 bg-gray-200 rounded w-full" />
+                      <div className="h-7 sm:h-8 bg-gray-200 rounded w-full" />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : productosFiltrados.length === 0 ? (
-            <div className="text-center py-10 sm:py-12">
+            <div className="text-center py-10 sm:py-12 container mx-auto max-w-7xl px-3 sm:px-4 md:px-6">
               <p className="text-sm sm:text-base md:text-lg text-gray-800">No se encontraron productos</p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3 lg:gap-4 xl:gap-6" data-reveal>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2 sm:gap-2.5 md:gap-3 lg:gap-4" data-reveal>
               {productosFiltrados.map((producto) => (
                 <ProductCard
                   key={producto.id}
@@ -425,36 +419,38 @@ function HomePageContent() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8">
             <div className="text-center">
-              <div className="bg-primary/10 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <MapPin className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              <div className="bg-primary/10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                <MapPin className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary" aria-hidden="true" />
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base text-gray-900">Ubicación</h3>
-              <p className="text-sm sm:text-base text-gray-700">Eventos Salome</p>
+              <h3 className="font-semibold mb-1 sm:mb-2 text-xs sm:text-sm md:text-base text-gray-900">Ubicación</h3>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-tight">Eventos Salome</p>
             </div>
 
             <div className="text-center">
-              <div className="bg-primary/10 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Phone className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              <div className="bg-primary/10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                <Phone className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary" aria-hidden="true" />
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base text-gray-900">Teléfono</h3>
-              <p className="text-sm sm:text-base text-gray-700">Contacta con nosotros</p>
+              <h3 className="font-semibold mb-1 sm:mb-2 text-xs sm:text-sm md:text-base text-gray-900">Teléfono</h3>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-tight">Contacta con nosotros</p>
             </div>
 
             <div className="text-center">
-              <div className="bg-primary/10 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Clock className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              <div className="bg-primary/10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                <Clock className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary" aria-hidden="true" />
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base text-gray-900">Horarios</h3>
-              <p className="text-sm sm:text-base text-gray-700">Lun - Dom: 8:00 AM - 10:00 PM</p>
+              <h3 className="font-semibold mb-1 sm:mb-2 text-xs sm:text-sm md:text-base text-gray-900">Horarios</h3>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-tight">Lun - Dom: 8:00 AM - 10:00 PM</p>
             </div>
           </div>
         </div>
       </section>
 
+      </main>
+      
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-6 sm:py-8 px-4 sm:px-6">
+      <footer className="bg-gray-900 text-white py-6 sm:py-8 px-4 sm:px-6" role="contentinfo">
         <div className="container mx-auto max-w-6xl text-center">
             <p className="text-sm sm:text-base text-gray-300">
               © 2024 Eventos Salome. Todos los derechos reservados.

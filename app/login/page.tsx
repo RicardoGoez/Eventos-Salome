@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Coffee } from "lucide-react";
+import { Coffee, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 function LoginForm() {
   const router = useRouter();
@@ -18,13 +19,64 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [touched, setTouched] = useState<{ email: boolean; password: boolean }>({ email: false, password: false });
   
   // Verificar si viene del checkout
   const fromCheckout = searchParams.get("from") === "checkout";
 
+  // Validación en tiempo real
+  const validateEmail = (value: string): string => {
+    if (!value.trim()) {
+      return "El email es requerido";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      return "El email no es válido";
+    }
+    return "";
+  };
+
+  const validatePassword = (value: string): string => {
+    if (!value) {
+      return "La contraseña es requerida";
+    }
+    if (value.length < 6) {
+      return "La contraseña debe tener al menos 6 caracteres";
+    }
+    return "";
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (touched.email) {
+      const error = validateEmail(value);
+      setFieldErrors(prev => ({ ...prev, email: error }));
+    }
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (touched.password) {
+      const error = validatePassword(value);
+      setFieldErrors(prev => ({ ...prev, password: error }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setTouched({ email: true, password: true });
+    
+    // Validar todos los campos
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    if (emailError || passwordError) {
+      setFieldErrors({ email: emailError, password: passwordError });
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -100,34 +152,89 @@ function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Label htmlFor="email">
+                Email <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  onBlur={() => {
+                    setTouched(prev => ({ ...prev, email: true }));
+                    const error = validateEmail(email);
+                    setFieldErrors(prev => ({ ...prev, email: error }));
+                  }}
+                  className={cn(
+                    touched.email && fieldErrors.email && "border-destructive focus-visible:ring-destructive",
+                    touched.email && !fieldErrors.email && email && "border-success"
+                  )}
+                  aria-invalid={touched.email && !!fieldErrors.email}
+                  aria-describedby={touched.email && fieldErrors.email ? "email-error" : undefined}
+                  required
+                />
+                {touched.email && !fieldErrors.email && email && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-success" aria-hidden="true" />
+                )}
+              </div>
+              {touched.email && fieldErrors.email && (
+                <p id="email-error" className="text-xs text-destructive flex items-center gap-1" role="alert">
+                  <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Label htmlFor="password">
+                Contraseña <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Ingresa tu contraseña"
+                  value={password}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
+                  onBlur={() => {
+                    setTouched(prev => ({ ...prev, password: true }));
+                    const error = validatePassword(password);
+                    setFieldErrors(prev => ({ ...prev, password: error }));
+                  }}
+                  className={cn(
+                    touched.password && fieldErrors.password && "border-destructive focus-visible:ring-destructive",
+                    touched.password && !fieldErrors.password && password && "border-success"
+                  )}
+                  aria-invalid={touched.password && !!fieldErrors.password}
+                  aria-describedby={touched.password && fieldErrors.password ? "password-error" : undefined}
+                  required
+                />
+                {touched.password && !fieldErrors.password && password && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-success" aria-hidden="true" />
+                )}
+              </div>
+              {touched.password && fieldErrors.password && (
+                <p id="password-error" className="text-xs text-destructive flex items-center gap-1" role="alert">
+                  <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded">
-                {error}
+              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded flex items-start gap-2" role="alert">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <span>{error}</span>
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button 
+              type="submit" 
+              className="w-full focus:ring-2 focus:ring-primary" 
+              disabled={loading || (touched.email && !!fieldErrors.email) || (touched.password && !!fieldErrors.password)}
+              aria-label="Iniciar sesión"
+            >
               {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
 

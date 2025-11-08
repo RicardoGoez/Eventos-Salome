@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Sidebar } from "@/components/sidebar";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -257,10 +258,11 @@ function ProductosPageContent() {
   return (
     <div className="flex min-h-screen lg:h-screen">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0">
+      <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0" role="main" id="main-content">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <h1 className="text-3xl font-bold text-dark">Productos</h1>
+          <Breadcrumb items={[{ label: "Productos" }]} />
+          <div className="mb-4 sm:mb-6 md:mb-8 flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+            <h1 className="text-2xl sm:text-3xl font-bold text-dark">Productos</h1>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
