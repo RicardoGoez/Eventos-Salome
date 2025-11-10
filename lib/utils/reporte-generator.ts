@@ -1,33 +1,52 @@
 import * as XLSX from "xlsx";
 import { Pedido, CierreCaja, EstadoPedido } from "@/types/domain";
 import jsPDF from "jspdf";
+import { getLogoDataUrl } from "./logo-loader";
 
 export class ReporteGenerator {
-  static generarReporteSemanalPDF(
-    pedidos: Pedido[],
-    fechaInicio: Date,
-    fechaFin: Date
-  ): string {
-    const doc = new jsPDF();
+  private static async drawHeader(
+    doc: jsPDF,
+    title: string,
+    subtitle?: string
+  ) {
     const pageWidth = doc.internal.pageSize.width;
     const margin = 20;
     let y = margin;
 
-    // Título
+    const logoDataUrl = await getLogoDataUrl();
+    if (logoDataUrl) {
+      const logoWidth = 50;
+      const logoHeight = 50;
+      const x = (pageWidth - logoWidth) / 2;
+      doc.addImage(logoDataUrl, "PNG", x, y, logoWidth, logoHeight, undefined, "FAST");
+      y += logoHeight + 6;
+    }
+
     doc.setFontSize(18);
-    doc.text("REPORTE SEMANAL DE VENTAS", pageWidth / 2, y, {
-      align: "center",
-    });
+    doc.text(title, pageWidth / 2, y, { align: "center" });
     y += 10;
 
-    doc.setFontSize(10);
-    doc.text(
-      `Período: ${fechaInicio.toLocaleDateString()} - ${fechaFin.toLocaleDateString()}`,
-      pageWidth / 2,
-      y,
-      { align: "center" }
+    if (subtitle) {
+      doc.setFontSize(10);
+      doc.text(subtitle, pageWidth / 2, y, { align: "center" });
+      y += 15;
+    }
+
+    return { y, pageWidth, margin };
+  }
+
+  static async generarReporteSemanalPDF(
+    pedidos: Pedido[],
+    fechaInicio: Date,
+    fechaFin: Date
+  ): Promise<string> {
+    const doc = new jsPDF();
+    const { y: startY, pageWidth, margin } = await this.drawHeader(
+      doc,
+      "REPORTE SEMANAL DE VENTAS",
+      `Período: ${fechaInicio.toLocaleDateString()} - ${fechaFin.toLocaleDateString()}`
     );
-    y += 15;
+    let y = startY;
 
     // Resumen
     const totalVentas = pedidos.reduce((sum, p) => sum + p.total, 0);
@@ -54,10 +73,25 @@ export class ReporteGenerator {
     doc.line(margin, y, pageWidth - margin, y);
     y += 5;
 
-    pedidos.forEach((pedido) => {
+    for (const pedido of pedidos) {
       if (y > doc.internal.pageSize.height - 30) {
         doc.addPage();
-        y = margin;
+        const header = await this.drawHeader(
+          doc,
+          "REPORTE SEMANAL DE VENTAS",
+          `Período: ${fechaInicio.toLocaleDateString()} - ${fechaFin.toLocaleDateString()}`
+        );
+        y = header.y;
+
+        doc.setFontSize(10);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 8;
+        doc.text("Fecha", margin, y);
+        doc.text("Número", margin + 40, y);
+        doc.text("Total", pageWidth - margin - 30, y, { align: "right" });
+        y += 8;
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 5;
       }
 
       doc.text(new Date(pedido.fecha).toLocaleDateString(), margin, y);
@@ -66,11 +100,9 @@ export class ReporteGenerator {
         align: "right",
       });
       y += 6;
-    });
+    }
 
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-    return url;
+    return doc.output("datauristring");
   }
 
   static generarReporteSemanalExcel(
@@ -170,25 +202,15 @@ export class ReporteGenerator {
     );
   }
 
-  static generarReporteCierreCajaPDF(cierre: CierreCaja): string {
+  static async generarReporteCierreCajaPDF(cierre: CierreCaja): Promise<string> {
     const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const margin = 20;
-    let y = margin;
-
-    // Título
-    doc.setFontSize(18);
-    doc.text("CIERRE DE CAJA", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    doc.setFontSize(10);
-    doc.text(
-      `Fecha: ${new Date(cierre.fecha).toLocaleDateString()}`,
-      pageWidth / 2,
-      y,
-      { align: "center" }
+    const { y: startY, margin } = await this.drawHeader(
+      doc,
+      "CIERRE DE CAJA",
+      `Fecha: ${new Date(cierre.fecha).toLocaleDateString()}`
     );
-    y += 15;
+    let y = startY;
+    const pageWidth = doc.internal.pageSize.width;
 
     // Resumen
     doc.setFontSize(12);
@@ -236,8 +258,6 @@ export class ReporteGenerator {
       doc.text(`Notas: ${cierre.notas}`, margin, y);
     }
 
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-    return url;
+    return doc.output("datauristring");
   }
 }

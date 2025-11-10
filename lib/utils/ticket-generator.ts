@@ -1,39 +1,52 @@
 import jsPDF from "jspdf";
 import { Pedido } from "@/types/domain";
 import { formatCOP } from "../utils";
+import { getLogoDataUrl } from "./logo-loader";
 
 export class TicketGenerator {
-  static generarPDF(pedido: Pedido): string {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const margin = 20;
+  private static async drawHeader(doc: jsPDF, pageWidth: number, margin: number) {
+    const logoDataUrl = await getLogoDataUrl();
     let y = margin;
 
-    // Título
+    if (logoDataUrl) {
+      const logoWidth = 40;
+      const logoHeight = 40;
+      const x = (pageWidth - logoWidth) / 2;
+      doc.addImage(logoDataUrl, "PNG", x, y, logoWidth, logoHeight, undefined, "FAST");
+      y += logoHeight + 6;
+    }
+
     doc.setFontSize(18);
-    doc.text("CAFETERÍA", pageWidth / 2, y, { align: "center" });
+    doc.text("Eventos Salome", pageWidth / 2, y, { align: "center" });
     y += 10;
 
     doc.setFontSize(12);
     doc.text("Ticket de Compra", pageWidth / 2, y, { align: "center" });
     y += 10;
 
-    // Línea separadora
+    return y;
+  }
+
+  static async generarPDF(pedido: Pedido): Promise<string> {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    let y = await this.drawHeader(doc, pageWidth, margin);
+
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Información del pedido
     doc.setFontSize(10);
     doc.text(`Número de Pedido: ${pedido.numero}`, margin, y);
     y += 6;
     doc.text(`Fecha: ${new Date(pedido.fecha).toLocaleString()}`, margin, y);
     y += 6;
-    
+
     if (pedido.mesa) {
       doc.text(`Mesa: ${pedido.mesa.numero}`, margin, y);
       y += 6;
     }
-    
+
     if (pedido.clienteNombre) {
       doc.text(`Cliente: ${pedido.clienteNombre}`, margin, y);
       y += 6;
@@ -43,7 +56,6 @@ export class TicketGenerator {
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Items
     doc.setFontSize(10);
     doc.text("Productos:", margin, y);
     y += 8;
@@ -62,7 +74,6 @@ export class TicketGenerator {
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Totales
     doc.setFontSize(10);
     doc.text(`Subtotal: ${formatCOP(pedido.subtotal)}`, margin, y);
     y += 6;
@@ -87,14 +98,13 @@ export class TicketGenerator {
       y += 6;
     }
 
-    // Código QR si existe
     if (pedido.ticketQR) {
       y += 5;
       doc.line(margin, y, pageWidth - margin, y);
       y += 8;
-      
-      // Nota: Para insertar la imagen QR se necesitaría convertir base64 a imagen
+      doc.setFontSize(10);
       doc.text("Código QR disponible", pageWidth / 2, y, { align: "center" });
+      y += 6;
     }
 
     y += 10;
@@ -104,32 +114,18 @@ export class TicketGenerator {
     doc.setFontSize(8);
     doc.text("¡Gracias por su compra!", pageWidth / 2, y, { align: "center" });
 
-    // Generar URL del blob
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-    return url;
+    return doc.output("datauristring");
   }
 
-  static descargarPDF(pedido: Pedido, nombreArchivo?: string): void {
+  static async descargarPDF(pedido: Pedido, nombreArchivo?: string): Promise<void> {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const margin = 20;
-    let y = margin;
+    let y = await this.drawHeader(doc, pageWidth, margin);
 
-    // Título
-    doc.setFontSize(18);
-    doc.text("CAFETERÍA", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    doc.setFontSize(12);
-    doc.text("Ticket de Compra", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    // Línea separadora
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Información del pedido
     doc.setFontSize(10);
     doc.text(`Número de Pedido: ${pedido.numero}`, margin, y);
     y += 6;
@@ -150,7 +146,6 @@ export class TicketGenerator {
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Items
     doc.setFontSize(10);
     doc.text("Productos:", margin, y);
     y += 8;
@@ -169,7 +164,6 @@ export class TicketGenerator {
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Totales
     doc.setFontSize(10);
     doc.text(`Subtotal: ${formatCOP(pedido.subtotal)}`, margin, y);
     y += 6;
@@ -201,7 +195,6 @@ export class TicketGenerator {
     doc.setFontSize(8);
     doc.text("¡Gracias por su compra!", pageWidth / 2, y, { align: "center" });
 
-    // Descargar
     doc.save(nombreArchivo || `ticket-${pedido.numero}.pdf`);
   }
 }

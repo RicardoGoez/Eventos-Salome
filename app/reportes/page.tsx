@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
+import { Logo } from "@/components/logo";
+import { getLogoDataUrl } from "@/lib/utils/logo-loader";
 
 export default function ReportesPage() {
   const [fechaInicio, setFechaInicio] = useState(
@@ -171,14 +173,24 @@ export default function ReportesPage() {
     XLSX.writeFile(wb, `reporte_ventas_${fechaInicio}_${fechaFin}.xlsx`);
   };
 
-  const exportarVentasPDF = () => {
+  const exportarVentasPDF = async () => {
     const doc = new jsPDF();
+    const logoDataUrl = await getLogoDataUrl();
+
+    if (logoDataUrl) {
+      doc.addImage(logoDataUrl, "PNG", 14, 10, 30, 30, undefined, "FAST");
+    }
+
     doc.setFontSize(18);
-    doc.text("Reporte de Ventas - Eventos Salome", 14, 20);
+    doc.text("Reporte de Ventas - Eventos Salome", logoDataUrl ? 50 : 14, 22);
     doc.setFontSize(12);
-    doc.text(`Período: ${format(new Date(fechaInicio), "dd/MM/yyyy")} - ${format(new Date(fechaFin), "dd/MM/yyyy")}`, 14, 30);
+    doc.text(
+      `Período: ${format(new Date(fechaInicio), "dd/MM/yyyy")} - ${format(new Date(fechaFin), "dd/MM/yyyy")}`,
+      logoDataUrl ? 50 : 14,
+      32
+    );
     
-    let y = 40;
+    let y = 45;
     doc.setFontSize(14);
     doc.text("Resumen", 14, y);
     y += 10;
@@ -230,8 +242,11 @@ export default function ReportesPage() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-dark">Reportes - Eventos Salome</h1>
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Logo size="lg" shadow />
+              <h1 className="text-3xl font-bold text-dark">Reportes - Eventos Salome</h1>
+            </div>
             <div className="flex gap-2">
               <Input
                 type="date"

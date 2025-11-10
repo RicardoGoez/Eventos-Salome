@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { DollarSign, Download, Plus } from "lucide-react";
 import { CierreCaja } from "@/types/domain";
 import { ReporteGenerator } from "@/lib/utils/reporte-generator";
+import { Logo } from "@/components/logo";
 
 export default function CierreCajaPage() {
   const [cierres, setCierres] = useState<CierreCaja[]>([]);
@@ -99,7 +100,7 @@ export default function CierreCajaPage() {
 
   const handleDescargarPDF = async (cierre: CierreCaja) => {
     try {
-      const pdfUrl = ReporteGenerator.generarReporteCierreCajaPDF(cierre);
+      const pdfUrl = await ReporteGenerator.generarReporteCierreCajaPDF(cierre);
       const link = document.createElement("a");
       link.href = pdfUrl;
       link.download = `cierre-caja-${new Date(cierre.fecha).toISOString().split("T")[0]}.pdf`;
@@ -114,8 +115,11 @@ export default function CierreCajaPage() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-dark">Cierre de Caja</h1>
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Logo size="lg" shadow />
+              <h1 className="text-3xl font-bold text-dark">Cierre de Caja</h1>
+            </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => {

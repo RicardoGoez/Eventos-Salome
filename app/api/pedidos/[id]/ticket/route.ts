@@ -15,7 +15,7 @@ export async function GET(
     }
 
     // Generar PDF y devolver URL
-    const pdfUrl = TicketGenerator.generarPDF(pedido);
+    const pdfUrl = await TicketGenerator.generarPDF(pedido);
 
     return NextResponse.json({ pdfUrl, pedido });
   } catch (error) {
