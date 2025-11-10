@@ -3,11 +3,12 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Coffee, AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -138,9 +139,18 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-light p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <Coffee className="h-12 w-12 text-primary" />
+        <CardHeader className="space-y-2">
+          <div className="flex items-center justify-center mb-2">
+            <div className="relative h-24 w-24 sm:h-28 sm:w-28">
+              <Image
+                src="/branding/logo.png"
+                alt="Logo de Eventos Salome"
+                fill
+                priority
+                className="object-contain drop-shadow-lg"
+                sizes="112px"
+              />
+            </div>
           </div>
           <CardTitle className="text-2xl text-center">
             Iniciar Sesión
@@ -261,7 +271,16 @@ export default function LoginPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
-              <Coffee className="h-12 w-12 text-primary animate-pulse" />
+              <div className="relative h-20 w-20 animate-pulse">
+                <Image
+                  src="/branding/logo.png"
+                  alt="Logo de Eventos Salome"
+                  fill
+                  className="object-contain"
+                  sizes="96px"
+                  priority
+                />
+              </div>
             </div>
             <CardTitle className="text-2xl text-center">
               Cargando...
