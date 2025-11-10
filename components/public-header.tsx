@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Coffee, ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import { ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Logo } from "@/components/logo";
 
 interface PublicHeaderProps {
   cartItemCount?: number;
@@ -86,16 +86,12 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
               aria-label="Eventos Salome - Inicio"
             >
               <div className="relative flex items-center gap-2">
-                <div className="relative h-8 w-8 sm:h-9 sm:w-9">
-                  <Image
-                    src="/branding/logo.png"
-                    alt="Logo de Eventos Salome"
-                    fill
-                    sizes="(max-width: 640px) 36px, 40px"
-                    className="object-contain transition-transform group-hover:scale-105"
-                    priority
-                  />
-                </div>
+                <Logo
+                  size="lg"
+                  className="transition-transform group-hover:scale-105"
+                  priority
+                  shadow
+                />
                 <div className="flex flex-col min-w-0">
                   <span className="text-base sm:text-xl font-bold text-gray-900 leading-tight">Eventos</span>
                   <span className="text-sm sm:text-lg italic text-primary -mt-0.5 sm:-mt-1 leading-tight">Salome</span>

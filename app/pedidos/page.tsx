@@ -18,6 +18,7 @@ import { useAdminData } from "@/contexts/admin-data-context";
 import { cn } from "@/lib/utils";
 import { differenceInSeconds, formatDistanceToNow, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
+import { Logo } from "@/components/logo";
 
 function PedidosPageContent() {
   const { toast } = useToast();
@@ -471,11 +472,14 @@ function PedidosPageContent() {
         <div className="mx-auto max-w-7xl">
           <Breadcrumb items={[{ label: "Pedidos" }]} />
           <div className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pedidos</h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Monitorea y gestiona el flujo de pedidos con actualizaciones en vivo.
-              </p>
+            <div className="flex items-center gap-3">
+              <Logo size="lg" shadow />
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pedidos</h1>
+                <p className="mt-1 text-sm text-gray-600">
+                  Monitorea y gestiona el flujo de pedidos con actualizaciones en vivo.
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button

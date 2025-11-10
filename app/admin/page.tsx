@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AdminWrapper } from "@/components/admin-wrapper";
 import { useAdminData } from "@/contexts/admin-data-context";
+import { Logo } from "@/components/logo";
 
 interface ProductoPopular {
   id: string;
@@ -188,9 +189,12 @@ function AdminDashboardPageContent() {
       <main className="flex-1 overflow-y-auto bg-light p-4 lg:p-8 lg:ml-0" role="main" id="main-content">
         <div className="mx-auto max-w-7xl">
           <Breadcrumb items={[{ label: "Dashboard" }]} />
-          <h1 className="mb-4 sm:mb-6 md:mb-8 text-2xl sm:text-3xl font-bold text-dark">
-            Dashboard - Eventos <span className="italic">Salome</span>
-          </h1>
+          <div className="flex items-center gap-3 mb-4 sm:mb-6 md:mb-8">
+            <Logo size="lg" shadow priority />
+            <h1 className="text-2xl sm:text-3xl font-bold text-dark">
+              Dashboard - Eventos <span className="italic">Salome</span>
+            </h1>
+          </div>
 
           <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6">
             <Card className="hover:shadow-md transition-shadow">

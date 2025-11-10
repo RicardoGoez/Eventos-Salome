@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase/client";
 import { differenceInSeconds, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/logo";
 
 type RealtimeStatus = "disabled" | "connecting" | "connected" | "disconnected" | "error";
 
@@ -391,10 +392,13 @@ export default function CocinaDashboardPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b shadow-sm">
         <div className="px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold text-dark">Cocina - Gestión de Pedidos</h1>
-              <p className="text-sm text-gray-600">Actualizar estados: En preparación, Listo</p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Logo size="lg" shadow />
+              <div>
+                <h1 className="text-2xl font-bold text-dark">Cocina - Gestión de Pedidos</h1>
+                <p className="text-sm text-gray-600">Actualizar estados: En preparación, Listo</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="relative">

@@ -4,7 +4,7 @@ import { useMemo, memo, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { Logo } from "@/components/logo";
 import {
   Coffee,
   Package,
@@ -135,16 +135,7 @@ export const Sidebar = memo(function Sidebar() {
           onClick={() => setIsMobileOpen(false)}
         >
           <div className="flex items-center gap-2">
-            <div className="relative h-8 w-8">
-              <Image
-                src="/branding/logo.png"
-                alt="Logo de Eventos Salome"
-                fill
-                sizes="40px"
-                className="object-contain"
-                priority
-              />
-            </div>
+            <Logo size="lg" shadow priority />
             <h1 className="text-xl font-bold">
               Eventos <span className="italic">Salome</span>
             </h1>

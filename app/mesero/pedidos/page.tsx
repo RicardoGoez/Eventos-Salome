@@ -12,6 +12,7 @@ import { Pedido, EstadoPedido } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMeseroData } from "@/contexts/mesero-data-context";
+import { Logo } from "@/components/logo";
 
 function PedidosMeseroContent() {
   const router = useRouter();
@@ -174,10 +175,13 @@ function PedidosMeseroContent() {
         {/* Header */}
         <header className="sticky top-0 z-40 bg-white border-b shadow-sm">
           <div className="px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-bold text-dark">Todos los Pedidos</h1>
-                <p className="text-sm text-gray-600">Gestiona todos los pedidos del sistema</p>
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <Logo size="lg" shadow />
+                <div>
+                  <h1 className="text-2xl font-bold text-dark">Todos los Pedidos</h1>
+                  <p className="text-sm text-gray-600">Gestiona todos los pedidos del sistema</p>
+                </div>
               </div>
               
               <Button

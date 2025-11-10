@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { AdminWrapper } from "@/components/admin-wrapper";
 import { useAdminData } from "@/contexts/admin-data-context";
+import { Logo } from "@/components/logo";
 
 function ProductosPageContent() {
   const { toast } = useToast();
@@ -262,7 +263,10 @@ function ProductosPageContent() {
         <div className="mx-auto max-w-7xl">
           <Breadcrumb items={[{ label: "Productos" }]} />
           <div className="mb-4 sm:mb-6 md:mb-8 flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
-            <h1 className="text-2xl sm:text-3xl font-bold text-dark">Productos</h1>
+            <div className="flex items-center gap-3">
+              <Logo size="lg" shadow />
+              <h1 className="text-2xl sm:text-3xl font-bold text-dark">Productos</h1>
+            </div>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
