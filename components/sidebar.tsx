@@ -129,18 +129,12 @@ export const Sidebar = memo(function Sidebar() {
     <>
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-primary/30 px-4">
-        <Link 
-          href="/" 
-          className="flex items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-primary-dark rounded"
-          onClick={() => setIsMobileOpen(false)}
-        >
-          <div className="flex items-center gap-2">
-            <Logo size="lg" shadow priority />
-            <h1 className="text-xl font-bold">
-              Eventos <span className="italic">Salome</span>
-            </h1>
-          </div>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Logo size="lg" shadow priority />
+          <h1 className="text-xl font-bold">
+            Eventos <span className="italic">Salome</span>
+          </h1>
+        </div>
         <button
           onClick={() => setIsMobileOpen(false)}
           className="lg:hidden text-primary-light hover:text-white transition-colors"

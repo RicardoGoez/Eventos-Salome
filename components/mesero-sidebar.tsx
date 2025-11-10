@@ -108,15 +108,11 @@ export const MeseroSidebar = memo(function MeseroSidebar() {
     <>
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-primary/30 px-4">
-        <Link 
-          href="/mesero" 
-          className="flex items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-primary-dark rounded"
-          onClick={() => setIsMobileOpen(false)}
-        >
+        <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold">
             Eventos <span className="italic">Salome</span>
           </h1>
-        </Link>
+        </div>
       </div>
 
       {/* User Info */}
