@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMeseroData } from "@/contexts/mesero-data-context";
 import { Logo } from "@/components/logo";
-import { Logo } from "@/components/logo";
 
 function PedidosMeseroContent() {
   const router = useRouter();
