@@ -4,6 +4,7 @@ import { useMemo, memo, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import {
   Coffee,
   Package,
@@ -133,9 +134,21 @@ export const Sidebar = memo(function Sidebar() {
           className="flex items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-primary-dark rounded"
           onClick={() => setIsMobileOpen(false)}
         >
-          <h1 className="text-xl font-bold">
-            Eventos <span className="italic">Salome</span>
-          </h1>
+          <div className="flex items-center gap-2">
+            <div className="relative h-8 w-8">
+              <Image
+                src="/branding/logo.png"
+                alt="Logo de Eventos Salome"
+                fill
+                sizes="40px"
+                className="object-contain"
+                priority
+              />
+            </div>
+            <h1 className="text-xl font-bold">
+              Eventos <span className="italic">Salome</span>
+            </h1>
+          </div>
         </Link>
         <button
           onClick={() => setIsMobileOpen(false)}

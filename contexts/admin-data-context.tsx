@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { Producto, Pedido, Mesa, Descuento, InventarioItem, Usuario } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase/client";
+
+type RealtimeStatus = "disabled" | "connecting" | "connected" | "disconnected" | "error";
 
 interface AdminDataContextType {
   // Datos
@@ -33,6 +36,7 @@ interface AdminDataContextType {
   
   // Cache y optimización
   lastUpdate: Date | null;
+  lastRealtimeEvent: Date | null;
   updateProducto: (productoId: string, updates: Partial<Producto>) => void;
   updatePedido: (pedidoId: string, updates: Partial<Pedido>) => void;
   updateMesa: (mesaId: string, updates: Partial<Mesa>) => void;
@@ -41,11 +45,13 @@ interface AdminDataContextType {
   getProductoById: (productoId: string) => Producto | undefined;
   getPedidoById: (pedidoId: string) => Pedido | undefined;
   getMesaById: (mesaId: string) => Mesa | undefined;
+
+  // Estado realtime
+  realtimeStatus: RealtimeStatus;
 }
 
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
-const CACHE_DURATION = 10000; // 10 segundos de caché
 const REFRESH_INTERVAL = 60000; // 60 segundos de auto-refresh
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
@@ -64,6 +70,24 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   const [loadingUsuarios, setLoadingUsuarios] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [lastRealtimeEvent, setLastRealtimeEvent] = useState<Date | null>(null);
+  const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>(() => (supabase ? "connecting" : "disabled"));
+
+  const sortPedidos = useCallback((lista: Pedido[]) => {
+    const toTimestamp = (input: any) => {
+      if (!input) return 0;
+      const value = typeof input === "string" || typeof input === "number" ? input : input.toString();
+      const date = new Date(value);
+      const time = date.getTime();
+      return Number.isFinite(time) ? time : 0;
+    };
+
+    return [...lista].sort((a, b) => {
+      const fechaA = toTimestamp(a.fecha || (a as any).createdAt);
+      const fechaB = toTimestamp(b.fecha || (b as any).createdAt);
+      return fechaB - fechaA;
+    });
+  }, []);
 
   // Cargar productos
   const loadProductos = useCallback(async (silent = false) => {
@@ -113,7 +137,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
       const data = await response.json();
       const pedidosArray = Array.isArray(data) ? data : [];
-      setPedidos(pedidosArray);
+      setPedidos(sortPedidos(pedidosArray));
       setLastUpdate(new Date());
     } catch (error) {
       console.error("Error al cargar pedidos:", error);
@@ -128,7 +152,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       setLoadingPedidos(false);
       setIsRefreshing(false);
     }
-  }, [loadingPedidos, toast]);
+  }, [loadingPedidos, sortPedidos, toast]);
 
   // Cargar mesas
   const loadMesas = useCallback(async (silent = false) => {
@@ -261,6 +285,41 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     ));
   }, []);
 
+  const syncPedidoById = useCallback(async (pedidoId: string) => {
+    if (!pedidoId) return;
+    try {
+      const response = await fetch(`/api/pedidos/${pedidoId}`);
+      if (!response.ok) {
+        throw new Error(`No se pudo sincronizar el pedido ${pedidoId}`);
+      }
+      const pedido = await response.json();
+      setPedidos(prev => {
+        const exists = prev.some(p => p.id === pedido.id);
+        const updated = exists
+          ? prev.map(p => (p.id === pedido.id ? pedido : p))
+          : [pedido, ...prev];
+        return sortPedidos(updated);
+      });
+      const now = new Date();
+      setLastUpdate(now);
+      setLastRealtimeEvent(now);
+    } catch (error) {
+      console.error("Error sincronizando pedido realtime:", error);
+      try {
+        const response = await fetch("/api/pedidos");
+        if (!response.ok) return;
+        const data = await response.json();
+        const pedidosArray = Array.isArray(data) ? data : [];
+        setPedidos(sortPedidos(pedidosArray));
+        const now = new Date();
+        setLastUpdate(now);
+        setLastRealtimeEvent(now);
+      } catch (fallbackError) {
+        console.error("Error en fallback de sincronización de pedidos:", fallbackError);
+      }
+    }
+  }, [sortPedidos]);
+
   // Helpers memoizados
   const getProductoById = useCallback((productoId: string) => {
     return productos.find(p => p.id === productoId);
@@ -281,6 +340,69 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     loadMesas();
     loadDescuentos();
   }, []); // Solo en mount inicial
+
+  // Suscripción realtime a pedidos
+  useEffect(() => {
+    const supabaseClient = supabase;
+
+    if (!supabaseClient) {
+      setRealtimeStatus("disabled");
+      return;
+    }
+
+    setRealtimeStatus("connecting");
+
+    const channel = supabaseClient
+      .channel("admin-data-pedidos")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "pedidos" },
+        (payload: any) => {
+          setLastRealtimeEvent(new Date());
+          if (payload.eventType === "DELETE") {
+            const pedidoId = payload.old?.id;
+            if (pedidoId) {
+              setPedidos(prev => prev.filter(p => p.id !== pedidoId));
+              setLastUpdate(new Date());
+            }
+            return;
+          }
+          const pedidoId = payload.new?.id;
+          if (pedidoId) {
+            syncPedidoById(pedidoId);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "items_pedido" },
+        (payload: any) => {
+          const pedidoId = payload.new?.pedido_id || payload.old?.pedido_id;
+          if (pedidoId) {
+            syncPedidoById(pedidoId);
+          }
+        }
+      );
+
+    const subscription = channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        setRealtimeStatus("connected");
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        setRealtimeStatus("error");
+      } else if (status === "CLOSED") {
+        setRealtimeStatus("disconnected");
+      }
+    });
+
+    return () => {
+      try {
+        supabaseClient.removeChannel(channel);
+      } catch (error) {
+        console.warn("Error removing Supabase channel:", error);
+      }
+      setRealtimeStatus("disconnected");
+    };
+  }, [syncPedidoById]);
 
   // Auto-refresh cada 60 segundos
   useEffect(() => {
@@ -313,12 +435,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     loadUsuarios,
     refreshAll,
     lastUpdate,
+    lastRealtimeEvent,
     updateProducto,
     updatePedido,
     updateMesa,
     getProductoById,
     getPedidoById,
     getMesaById,
+    realtimeStatus,
   }), [
     productos,
     pedidos,
@@ -341,12 +465,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     loadUsuarios,
     refreshAll,
     lastUpdate,
+    lastRealtimeEvent,
     updateProducto,
     updatePedido,
     updateMesa,
     getProductoById,
     getPedidoById,
     getMesaById,
+    realtimeStatus,
   ]);
 
   return (

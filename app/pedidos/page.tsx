@@ -9,12 +9,15 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Eye } from "lucide-react";
+import { Plus, Eye, Activity, Timer, BarChart3, Signal, RefreshCw } from "lucide-react";
 import { Pedido, EstadoPedido, ItemPedido, MetodoPago } from "@/types/domain";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { AdminWrapper } from "@/components/admin-wrapper";
 import { useAdminData } from "@/contexts/admin-data-context";
+import { cn } from "@/lib/utils";
+import { differenceInSeconds, formatDistanceToNow, isSameDay } from "date-fns";
+import { es } from "date-fns/locale";
 
 function PedidosPageContent() {
   const { toast } = useToast();
@@ -23,11 +26,10 @@ function PedidosPageContent() {
     productos,
     mesas,
     descuentos,
-    loadPedidos,
-    loadProductos,
-    loadMesas,
-    loadDescuentos,
     refreshAll,
+    realtimeStatus,
+    lastRealtimeEvent,
+    isRefreshing,
   } = useAdminData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -46,6 +48,295 @@ function PedidosPageContent() {
     cantidad: 1,
     notas: "",
   });
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const toDate = useCallback((value?: Date | string | null) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date : null;
+  }, []);
+
+  const secondsToHuman = useCallback((seconds: number | null | undefined) => {
+    if (!seconds || seconds <= 0) return "--";
+    if (seconds < 60) {
+      return `${Math.max(1, Math.round(seconds))} s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    if (minutes < 60) {
+      return `${minutes} min${minutes !== 1 ? "s" : ""}${remainingSeconds >= 10 ? ` ${remainingSeconds}s` : ""}`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours} h${remainingMinutes > 0 ? ` ${remainingMinutes} min` : ""}`;
+  }, []);
+
+  const getSecondsSince = useCallback(
+    (value?: Date | string | null) => {
+      const date = toDate(value);
+      if (!date) return null;
+      const diff = differenceInSeconds(now, date);
+      return diff >= 0 ? diff : 0;
+    },
+    [now, toDate]
+  );
+
+  const getSecondsInCurrentEstado = useCallback(
+    (pedido: Pedido) => {
+      if (pedido.estado === EstadoPedido.PENDIENTE) {
+        return getSecondsSince(pedido.fecha);
+      }
+      return getSecondsSince(pedido.updatedAt || pedido.fecha);
+    },
+    [getSecondsSince]
+  );
+
+  const isNewPedido = useCallback(
+    (pedido: Pedido) => {
+      const seconds = getSecondsSince(pedido.fecha);
+      return seconds !== null && seconds < 180;
+    },
+    [getSecondsSince]
+  );
+
+  const isPedidoUrgente = useCallback(
+    (pedido: Pedido) => {
+      const seconds = getSecondsInCurrentEstado(pedido) || 0;
+      const minutes = seconds / 60;
+      if (pedido.estado === EstadoPedido.LISTO) return minutes >= 15;
+      if (pedido.estado === EstadoPedido.EN_PREPARACION) return minutes >= 12;
+      if (pedido.estado === EstadoPedido.PENDIENTE) return minutes >= 8;
+      return false;
+    },
+    [getSecondsInCurrentEstado]
+  );
+
+  const pedidosHoy = useMemo(() => {
+    return pedidos.filter((pedido) => {
+      const fechaPedido = toDate(pedido.fecha);
+      return fechaPedido ? isSameDay(fechaPedido, now) : false;
+    });
+  }, [now, pedidos, toDate]);
+
+  const entregadosHoy = useMemo(
+    () => pedidosHoy.filter((pedido) => pedido.estado === EstadoPedido.ENTREGADO),
+    [pedidosHoy]
+  );
+
+  const pedidosPendientes = useMemo(
+    () => pedidos.filter((pedido) => pedido.estado === EstadoPedido.PENDIENTE),
+    [pedidos]
+  );
+
+  const pedidosEnPreparacion = useMemo(
+    () => pedidos.filter((pedido) => pedido.estado === EstadoPedido.EN_PREPARACION),
+    [pedidos]
+  );
+
+  const pedidosListos = useMemo(
+    () => pedidos.filter((pedido) => pedido.estado === EstadoPedido.LISTO),
+    [pedidos]
+  );
+
+  const tiempoPromedioEntregaSegundos = useMemo(() => {
+    const totales = entregadosHoy.reduce(
+      (acc, pedido) => {
+        const inicio = toDate(pedido.fecha);
+        const fin = toDate(pedido.updatedAt);
+        if (inicio && fin) {
+          acc.segundos += (fin.getTime() - inicio.getTime()) / 1000;
+          acc.cantidad += 1;
+        }
+        return acc;
+      },
+      { segundos: 0, cantidad: 0 }
+    );
+    return totales.cantidad > 0 ? totales.segundos / totales.cantidad : null;
+  }, [entregadosHoy, toDate]);
+
+  const tiempoPromedioEnColaSegundos = useMemo(() => {
+    const cola = [...pedidosPendientes, ...pedidosEnPreparacion];
+    if (cola.length === 0) return null;
+    const total = cola.reduce((acc, pedido) => {
+      const seconds = getSecondsInCurrentEstado(pedido);
+      return acc + (seconds ?? 0);
+    }, 0);
+    return total / cola.length;
+  }, [getSecondsInCurrentEstado, pedidosEnPreparacion, pedidosPendientes]);
+
+  const ticketPromedio = useMemo(() => {
+    if (pedidosHoy.length === 0) return null;
+    const total = pedidosHoy.reduce((acc, pedido) => acc + pedido.total, 0);
+    return total / pedidosHoy.length;
+  }, [pedidosHoy]);
+
+  const ultimoEventoRealtime = useMemo(() => {
+    if (!lastRealtimeEvent) return "Sin eventos aún";
+    try {
+      return formatDistanceToNow(new Date(lastRealtimeEvent), {
+        addSuffix: true,
+        locale: es,
+      });
+    } catch {
+      return "Sincronización reciente";
+    }
+  }, [lastRealtimeEvent]);
+
+  const realtimeConfig = useMemo(
+    () => ({
+      disabled: {
+        label: "Tiempo real deshabilitado",
+        className: "border-gray-300 bg-gray-100 text-gray-600",
+        iconClass: "text-gray-500",
+      },
+      connecting: {
+        label: "Conectando con Supabase…",
+        className: "border-warning/30 bg-warning/10 text-warning",
+        iconClass: "text-warning",
+      },
+      connected: {
+        label: "Actualización en vivo",
+        className: "border-success/40 bg-success/10 text-success",
+        iconClass: "text-success",
+      },
+      disconnected: {
+        label: "Conexión interrumpida",
+        className: "border-warning/30 bg-warning/10 text-warning",
+        iconClass: "text-warning",
+      },
+      error: {
+        label: "Error con canal en vivo",
+        className: "border-danger/30 bg-danger/10 text-danger",
+        iconClass: "text-danger",
+      },
+    }),
+    []
+  );
+
+  const realtimeBadge = realtimeConfig[realtimeStatus] ?? realtimeConfig.disabled;
+
+  const formatCurrency = useCallback((value: number | null | undefined) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return "--";
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      maximumFractionDigits: 0,
+    }).format(value);
+  }, []);
+
+  const pedidosEnCola = pedidosPendientes.length + pedidosEnPreparacion.length;
+
+  const stats = useMemo(
+    () => [
+      {
+        label: "Pedidos hoy",
+        value: pedidosHoy.length.toString(),
+        hint: `${entregadosHoy.length} entregados`,
+        icon: Activity,
+      },
+      {
+        label: "Tiempo promedio entrega",
+        value: secondsToHuman(tiempoPromedioEntregaSegundos),
+        hint:
+          entregadosHoy.length > 0
+            ? "Basado en pedidos entregados hoy"
+            : "Sin entregas completadas",
+        icon: Timer,
+      },
+      {
+        label: "Pedidos en cola",
+        value: pedidosEnCola.toString(),
+        hint:
+          pedidosEnCola > 0
+            ? `Promedio en cola: ${secondsToHuman(tiempoPromedioEnColaSegundos)}`
+            : "Sin pedidos en cola",
+        icon: BarChart3,
+      },
+      {
+        label: "Ticket promedio",
+        value: formatCurrency(ticketPromedio),
+        hint: pedidosHoy.length > 0 ? "Ticket promedio del día" : "Sin pedidos hoy",
+        icon: BarChart3,
+      },
+    ],
+    [
+      entregadosHoy.length,
+      formatCurrency,
+      pedidosEnCola,
+      pedidosHoy.length,
+      secondsToHuman,
+      ticketPromedio,
+      tiempoPromedioEnColaSegundos,
+      tiempoPromedioEntregaSegundos,
+    ]
+  );
+
+  const boardColumns = useMemo(
+    () => [
+      {
+        key: "pendientes",
+        label: "Pendientes",
+        pedidos: pedidosPendientes,
+        emptyHelp: "Los pedidos creados aparecerán aquí",
+        nextState: EstadoPedido.EN_PREPARACION,
+        actionLabel: "Enviar a cocina",
+      },
+      {
+        key: "enPreparacion",
+        label: "En preparación",
+        pedidos: pedidosEnPreparacion,
+        emptyHelp: "Cocina sin pedidos activos",
+        nextState: EstadoPedido.LISTO,
+        actionLabel: "Marcar listo",
+      },
+      {
+        key: "listos",
+        label: "Listos",
+        pedidos: pedidosListos,
+        emptyHelp: "Sin pedidos listos para entregar",
+        nextState: EstadoPedido.ENTREGADO,
+        actionLabel: "Entregar",
+      },
+      {
+        key: "entregados",
+        label: "Entregados (hoy)",
+        pedidos: entregadosHoy,
+        emptyHelp: "Aún no se entregan pedidos hoy",
+        nextState: null,
+        actionLabel: null,
+      },
+    ],
+    [entregadosHoy, pedidosEnPreparacion, pedidosListos, pedidosPendientes]
+  );
+
+  const getTiempoPedido = useCallback(
+    (pedido: Pedido) => {
+      const seconds = getSecondsInCurrentEstado(pedido);
+      return secondsToHuman(seconds);
+    },
+    [getSecondsInCurrentEstado, secondsToHuman]
+  );
+
+  const getCreatedRelativeTime = useCallback(
+    (pedido: Pedido) => {
+      const fecha = toDate(pedido.fecha);
+      if (!fecha) return "--";
+      try {
+        return formatDistanceToNow(fecha, {
+          addSuffix: true,
+          locale: es,
+        });
+      } catch {
+        return "--";
+      }
+    },
+    [toDate]
+  );
 
   // Los datos se cargan desde el contexto
 
@@ -180,23 +471,39 @@ function PedidosPageContent() {
         <div className="mx-auto max-w-7xl">
           <Breadcrumb items={[{ label: "Pedidos" }]} />
           <div className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pedidos</h1>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nuevo Pedido
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <form onSubmit={handleSubmit}>
-                  <DialogHeader>
-                    <DialogTitle>Nuevo Pedido</DialogTitle>
-                    <DialogDescription>
-                      Crea un nuevo pedido para Eventos Salome
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pedidos</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Monitorea y gestiona el flujo de pedidos con actualizaciones en vivo.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refreshAll()}
+                disabled={isRefreshing}
+                className="gap-2"
+              >
+                <RefreshCw className={cn("h-4 w-4", isRefreshing ? "animate-spin" : "")} />
+                Sincronizar
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nuevo Pedido
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <form onSubmit={handleSubmit}>
+                    <DialogHeader>
+                      <DialogTitle>Nuevo Pedido</DialogTitle>
+                      <DialogDescription>
+                        Crea un nuevo pedido para Eventos Salome
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="grid gap-2">
                         <Label htmlFor="cliente">Cliente (Opcional)</Label>
@@ -386,10 +693,161 @@ function PedidosPageContent() {
                       {loading ? "Creando..." : "Crear Pedido"}
                     </Button>
                   </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
+
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2">
+              <div
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium shadow-sm",
+                  realtimeBadge.className
+                )}
+              >
+                <Signal className={cn("h-4 w-4", realtimeBadge.iconClass)} />
+                <span>{realtimeBadge.label}</span>
+              </div>
+              <p className="text-xs text-gray-600">
+                Último evento:{" "}
+                <span className="font-medium text-gray-900">{ultimoEventoRealtime}</span>
+              </p>
+            </div>
+            <div className="text-sm text-gray-600 space-y-1 sm:text-right">
+              <p>
+                Pedidos activos:{" "}
+                <span className="font-semibold text-gray-900">{pedidos.length}</span>
+              </p>
+              <p>
+                Promedio en cola:{" "}
+                <span className="font-semibold text-gray-900">
+                  {pedidosEnCola > 0 ? secondsToHuman(tiempoPromedioEnColaSegundos) : "Sin cola"}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={stat.label} className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">{stat.label}</CardTitle>
+                    <Icon className="h-4 w-4 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                    <p className="text-xs text-gray-600 mt-1">{stat.hint}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <Card className="mb-6 border-primary/20 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-gray-900">Tablero en tiempo real</CardTitle>
+              <CardDescription className="text-gray-600">
+                Visualiza pedidos por estado, identifica cuellos de botella y avanza etapas con un clic.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {boardColumns.map((column) => (
+                  <div key={column.key} className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+                        {column.label}
+                      </h3>
+                      <span className="text-xs font-medium text-gray-500">
+                        {column.pedidos.length}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {column.pedidos.length === 0 ? (
+                        <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-500">
+                          {column.emptyHelp}
+                        </div>
+                      ) : (
+                        column.pedidos.map((pedido) => (
+                          <div
+                            key={pedido.id}
+                            className={cn(
+                              "relative rounded-lg border bg-white p-4 shadow-sm transition-all",
+                              isPedidoUrgente(pedido)
+                                ? "border-danger/60 shadow-danger/10"
+                                : "border-gray-200 hover:border-primary/40",
+                              isNewPedido(pedido) ? "ring-2 ring-primary/30" : ""
+                            )}
+                          >
+                            {isPedidoUrgente(pedido) && (
+                              <span className="absolute -top-2 right-2 rounded-full bg-danger px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">
+                                Urgente
+                              </span>
+                            )}
+
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">{pedido.numero}</p>
+                                <p className="text-xs text-gray-500">
+                                  Creado {getCreatedRelativeTime(pedido)}
+                                </p>
+                              </div>
+                              <span
+                                className={cn(
+                                  "rounded-full px-2 py-1 text-[11px] font-semibold",
+                                  getEstadoColor(pedido.estado)
+                                )}
+                              >
+                                {pedido.estado}
+                              </span>
+                            </div>
+
+                            <div className="mt-3 space-y-1 text-sm text-gray-700">
+                              {pedido.clienteNombre || pedido.cliente?.nombre ? (
+                                <p className="font-medium line-clamp-1">
+                                  {pedido.clienteNombre || pedido.cliente?.nombre}
+                                </p>
+                              ) : (
+                                <p className="font-medium text-gray-500">Cliente sin registrar</p>
+                              )}
+                              {(pedido.mesaId || pedido.mesa) && (
+                                <p className="text-xs text-gray-500">
+                                  Mesa {pedido.mesa?.numero ?? pedido.mesaId}
+                                  {pedido.mesa?.capacidad ? ` · Capacidad ${pedido.mesa?.capacidad}` : ""}
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-500">
+                                {pedido.items.length} item(s) · Total {formatCurrency(pedido.total)}
+                              </p>
+                            </div>
+
+                            <div className="mt-3 flex items-center justify-between text-xs text-gray-600">
+                              <span>En estado: {getTiempoPedido(pedido)}</span>
+                              {column.nextState ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleUpdateEstado(pedido.id, column.nextState!)}
+                                >
+                                  {column.actionLabel}
+                                </Button>
+                              ) : (
+                                <span className="text-success font-semibold">Completado</span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

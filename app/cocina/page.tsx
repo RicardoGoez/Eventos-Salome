@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PedidoCard } from "@/components/mesero/pedido-card";
-import { RefreshCw, Search, Package, CheckCircle2, Clock, LogOut } from "lucide-react";
+import { RefreshCw, Search, Package, CheckCircle2, Clock, LogOut, Signal, Timer } from "lucide-react";
 import { Pedido, EstadoPedido } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
+import { differenceInSeconds, formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+type RealtimeStatus = "disabled" | "connecting" | "connected" | "disconnected" | "error";
 
 export default function CocinaDashboardPage() {
   const router = useRouter();
@@ -24,7 +29,14 @@ export default function CocinaDashboardPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [detallePedido, setDetallePedido] = useState<Pedido | null>(null);
   const [chipEstado, setChipEstado] = useState<"TODOS" | "PENDIENTE" | "EN_PREPARACION" | "LISTO">("TODOS");
-  const [secondsLeft, setSecondsLeft] = useState(15);
+  const [secondsLeft, setSecondsLeft] = useState(60);
+  const [now, setNow] = useState(() => new Date());
+  const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>(() =>
+    supabase ? "connecting" : "disabled"
+  );
+  const [lastRealtimeEvent, setLastRealtimeEvent] = useState<Date | null>(null);
+  const REFRESH_INTERVAL_SECONDS = 60;
+  const REFRESH_INTERVAL_MS = REFRESH_INTERVAL_SECONDS * 1000;
   const handleLogout = () => {
     try {
       localStorage.removeItem("usuario");
@@ -42,7 +54,6 @@ export default function CocinaDashboardPage() {
     }
     const usuario = JSON.parse(usuarioStorage);
     if (usuario.rol !== "ADMIN" && usuario.rol !== "COCINA") {
-      // Bloquear acceso a no administradores por ahora
       router.push("/");
       return;
     }
@@ -58,30 +69,60 @@ export default function CocinaDashboardPage() {
     } catch {}
 
     loadPedidos();
-    // Suscripción Realtime a cambios de pedidos
-    let channel: any;
-    try {
-      if (supabase) {
-        channel = (supabase as any)
-          .channel("realtime-pedidos")
-          .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, () => {
+
+    const supabaseClient = supabase;
+    let channel: any = null;
+
+    if (!supabaseClient) {
+      setRealtimeStatus("disabled");
+    } else {
+      setRealtimeStatus("connecting");
+      channel = supabaseClient
+        .channel("cocina-pedidos")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "pedidos" },
+          () => {
+            setLastRealtimeEvent(new Date());
+            setSecondsLeft(REFRESH_INTERVAL_SECONDS);
             loadPedidos(true);
-          })
-          .subscribe();
-      }
-    } catch {}
+          }
+        )
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            setRealtimeStatus("connected");
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            setRealtimeStatus("error");
+          } else if (status === "CLOSED") {
+            setRealtimeStatus("disconnected");
+          }
+        });
+    }
+
     const refreshInterval = setInterval(() => {
       loadPedidos(true);
-      setSecondsLeft(15);
-    }, 15000);
+      setSecondsLeft(REFRESH_INTERVAL_SECONDS);
+    }, REFRESH_INTERVAL_MS);
 
     const tick = setInterval(() => setSecondsLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
+
     return () => {
       clearInterval(refreshInterval);
       clearInterval(tick);
-      try { channel && (supabase as any)?.removeChannel?.(channel); } catch {}
+      if (channel && supabaseClient) {
+        try {
+          supabaseClient.removeChannel(channel);
+        } catch (error) {
+          console.warn("Error removing Supabase channel (cocina):", error);
+        }
+      }
     };
-  }, [router]);
+  }, [REFRESH_INTERVAL_MS, REFRESH_INTERVAL_SECONDS, router]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Guardar preferencias (sin modo compacto)
   useEffect(() => {
@@ -103,6 +144,10 @@ export default function CocinaDashboardPage() {
       const pedidosArray = Array.isArray(data) ? data : [];
       pedidosArray.sort((a: Pedido, b: Pedido) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
       setPedidos(pedidosArray.filter(p => p.estado !== EstadoPedido.ENTREGADO && p.estado !== EstadoPedido.CANCELADO));
+      setSecondsLeft(REFRESH_INTERVAL_SECONDS);
+      if (!silent) {
+        setLastRealtimeEvent(new Date());
+      }
     } catch (e) {
       toast({ title: "Error", description: "No se pudieron cargar pedidos", variant: "destructive" });
     } finally {
@@ -110,6 +155,199 @@ export default function CocinaDashboardPage() {
       setIsRefreshing(false);
     }
   };
+
+  const toDate = useCallback((value?: Date | string | null) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date : null;
+  }, []);
+
+  const getSecondsSince = useCallback(
+    (value?: Date | string | null) => {
+      const date = toDate(value);
+      if (!date) return null;
+      const diff = differenceInSeconds(now, date);
+      return diff >= 0 ? diff : 0;
+    },
+    [now, toDate]
+  );
+
+  const getSecondsInEstado = useCallback(
+    (pedido: Pedido) => {
+      if (pedido.estado === EstadoPedido.PENDIENTE) {
+        return getSecondsSince(pedido.fecha);
+      }
+      return getSecondsSince(pedido.updatedAt || pedido.fecha);
+    },
+    [getSecondsSince]
+  );
+
+  const secondsToHuman = useCallback((seconds: number | null | undefined) => {
+    if (!seconds || seconds <= 0) return "--";
+    if (seconds < 60) {
+      return `${Math.max(1, Math.round(seconds))} s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    if (minutes < 60) {
+      return `${minutes} min${minutes !== 1 ? "s" : ""}${remainingSeconds >= 15 ? ` ${remainingSeconds}s` : ""}`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours} h${remainingMinutes > 0 ? ` ${remainingMinutes} min` : ""}`;
+  }, []);
+
+  const pedidosPendientes = useMemo(
+    () => pedidos.filter((p) => p.estado === EstadoPedido.PENDIENTE),
+    [pedidos]
+  );
+
+  const pedidosEnPreparacion = useMemo(
+    () => pedidos.filter((p) => p.estado === EstadoPedido.EN_PREPARACION),
+    [pedidos]
+  );
+
+  const pedidosListos = useMemo(
+    () => pedidos.filter((p) => p.estado === EstadoPedido.LISTO),
+    [pedidos]
+  );
+
+  const tiempoPromedioPendientes = useMemo(() => {
+    if (pedidosPendientes.length === 0) return null;
+    const total = pedidosPendientes.reduce((acc, pedido) => {
+      const seconds = getSecondsInEstado(pedido) ?? 0;
+      return acc + seconds;
+    }, 0);
+    return total / pedidosPendientes.length;
+  }, [getSecondsInEstado, pedidosPendientes]);
+
+  const tiempoPromedioPreparacion = useMemo(() => {
+    if (pedidosEnPreparacion.length === 0) return null;
+    const total = pedidosEnPreparacion.reduce((acc, pedido) => {
+      const seconds = getSecondsInEstado(pedido) ?? 0;
+      return acc + seconds;
+    }, 0);
+    return total / pedidosEnPreparacion.length;
+  }, [getSecondsInEstado, pedidosEnPreparacion]);
+
+  const tiempoPromedioListos = useMemo(() => {
+    if (pedidosListos.length === 0) return null;
+    const total = pedidosListos.reduce((acc, pedido) => {
+      const seconds = getSecondsInEstado(pedido) ?? 0;
+      return acc + seconds;
+    }, 0);
+    return total / pedidosListos.length;
+  }, [getSecondsInEstado, pedidosListos]);
+
+  const filtrar = useCallback(
+    (lista: Pedido[]) => {
+      if (!searchQuery.trim()) return lista;
+      const q = searchQuery.toLowerCase();
+      return lista.filter(
+        (p) =>
+          p.numero.toLowerCase().includes(q) ||
+          p.clienteNombre?.toLowerCase().includes(q) ||
+          p.mesa?.numero?.toString().includes(q)
+      );
+    },
+    [searchQuery]
+  );
+
+  const filtrarChip = useCallback(
+    (lista: Pedido[]) => {
+      if (chipEstado === "TODOS") return lista;
+      return lista.filter((p) => p.estado === chipEstado);
+    },
+    [chipEstado]
+  );
+
+  const esUrgente = useCallback(
+    (pedido: Pedido) => {
+      const seconds = getSecondsInEstado(pedido) ?? 0;
+      const minutes = seconds / 60;
+      if (pedido.estado === EstadoPedido.LISTO) return minutes >= 15;
+      if (pedido.estado === EstadoPedido.EN_PREPARACION) return minutes >= 12;
+      return minutes >= 8;
+    },
+    [getSecondsInEstado]
+  );
+
+  const ultimoEventoRealtime = useMemo(() => {
+    if (!lastRealtimeEvent) return "Sin eventos recientes";
+    try {
+      return formatDistanceToNow(lastRealtimeEvent, { addSuffix: true, locale: es });
+    } catch {
+      return "Sincronización reciente";
+    }
+  }, [lastRealtimeEvent]);
+
+  const realtimeConfig = useMemo(
+    () => ({
+      disabled: {
+        label: "Tiempo real deshabilitado",
+        className: "border-gray-300 bg-gray-100 text-gray-600",
+        iconClass: "text-gray-500",
+      },
+      connecting: {
+        label: "Conectando al canal en vivo…",
+        className: "border-warning/30 bg-warning/10 text-warning",
+        iconClass: "text-warning",
+      },
+      connected: {
+        label: "Actualización en vivo",
+        className: "border-success/40 bg-success/10 text-success",
+        iconClass: "text-success",
+      },
+      disconnected: {
+        label: "Conexión interrumpida",
+        className: "border-warning/30 bg-warning/10 text-warning",
+        iconClass: "text-warning",
+      },
+      error: {
+        label: "Error con canal en vivo",
+        className: "border-danger/30 bg-danger/10 text-danger",
+        iconClass: "text-danger",
+      },
+    }),
+    []
+  );
+
+  const realtimeBadge = realtimeConfig[realtimeStatus] ?? realtimeConfig.disabled;
+
+  const statCards = useMemo(
+    () => [
+      {
+        label: "Pendientes",
+        value: pedidosPendientes.length,
+        hint: `Espera media: ${secondsToHuman(tiempoPromedioPendientes)}`,
+      },
+      {
+        label: "En preparación",
+        value: pedidosEnPreparacion.length,
+        hint: `Tiempo en cocina: ${secondsToHuman(tiempoPromedioPreparacion)}`,
+      },
+      {
+        label: "Listos",
+        value: pedidosListos.length,
+        hint: `Listos hace: ${secondsToHuman(tiempoPromedioListos)}`,
+      },
+      {
+        label: "Próxima recarga",
+        value: `${secondsLeft}s`,
+        hint: "Refresco de respaldo automático",
+      },
+    ],
+    [
+      pedidosEnPreparacion.length,
+      pedidosListos.length,
+      pedidosPendientes.length,
+      secondsLeft,
+      secondsToHuman,
+      tiempoPromedioListos,
+      tiempoPromedioPendientes,
+      tiempoPromedioPreparacion,
+    ]
+  );
 
   const openDetalle = async (pedidoId: string) => {
     try {
@@ -135,33 +373,6 @@ export default function CocinaDashboardPage() {
     } catch {
       toast({ title: "Error", description: "No se pudo actualizar el estado", variant: "destructive" });
     }
-  };
-
-  const pedidosPendientes = pedidos.filter(p => p.estado === EstadoPedido.PENDIENTE);
-  const pedidosEnPreparacion = pedidos.filter(p => p.estado === EstadoPedido.EN_PREPARACION);
-  const pedidosListos = pedidos.filter(p => p.estado === EstadoPedido.LISTO);
-
-  const filtrar = (lista: Pedido[]) => {
-    if (!searchQuery.trim()) return lista;
-    const q = searchQuery.toLowerCase();
-    return lista.filter(p => p.numero.toLowerCase().includes(q) || p.clienteNombre?.toLowerCase().includes(q) || p.mesa?.numero?.toString().includes(q));
-  };
-
-  const filtrarChip = (lista: Pedido[]) => {
-    if (chipEstado === "TODOS") return lista;
-    return lista.filter(p => p.estado === chipEstado);
-  };
-
-  const minutosDesde = (fechaIso: string | Date) => {
-    const ms = Date.now() - new Date(fechaIso).getTime();
-    return Math.floor(ms / 60000);
-  };
-
-  const esUrgente = (p: Pedido) => {
-    const m = minutosDesde(p.fecha);
-    if (p.estado === EstadoPedido.LISTO) return m >= 15;
-    if (p.estado === EstadoPedido.EN_PREPARACION) return m >= 12;
-    return m >= 8; // pendiente
   };
 
   if (loading) {
@@ -199,7 +410,6 @@ export default function CocinaDashboardPage() {
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
                 Actualizar
               </Button>
-              <Badge variant="outline" className="ml-1">Auto en {secondsLeft}s</Badge>
               <Button size="sm" onClick={handleLogout} className="gap-2 ml-2">
                 <LogOut className="h-4 w-4" />
                 Cerrar sesión
@@ -211,6 +421,46 @@ export default function CocinaDashboardPage() {
 
       {/* Content */}
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <div
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium shadow-sm",
+                realtimeBadge.className
+              )}
+            >
+              <Signal className={cn("h-4 w-4", realtimeBadge.iconClass)} />
+              <span>{realtimeBadge.label}</span>
+            </div>
+            <p className="text-xs text-gray-600">
+              Último evento:{" "}
+              <span className="font-semibold text-gray-900">{ultimoEventoRealtime}</span>
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 text-sm text-gray-600 sm:items-end">
+            <span>
+              Pedidos activos:{" "}
+              <span className="font-semibold text-gray-900">{pedidos.length}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <Timer className="h-4 w-4 text-gray-400" />
+              {pedidosEnPreparacion.length > 0
+                ? `Tiempo en cocina: ${secondsToHuman(tiempoPromedioPreparacion)}`
+                : "Sin pedidos en preparación"}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {statCards.map((stat) => (
+            <div key={stat.label} className="rounded-lg border bg-white p-4 shadow-sm">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{stat.label}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">{stat.value}</p>
+              <p className="text-xs text-gray-600 mt-1">{stat.hint}</p>
+            </div>
+          ))}
+        </div>
+
         {/* Chips de filtro por estado */}
         <div className="flex flex-wrap gap-2">
           {([

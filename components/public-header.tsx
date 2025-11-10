@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Coffee, ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -84,13 +85,21 @@ export function PublicHeader({ cartItemCount = 0, onCartClick }: PublicHeaderPro
               className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0 min-w-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
               aria-label="Eventos Salome - Inicio"
             >
-              <div className="relative flex-shrink-0" aria-hidden="true">
-                <Coffee className="h-6 w-6 sm:h-8 sm:w-8 text-primary transition-transform group-hover:scale-110" />
-                <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-3 sm:w-3 bg-primary rounded-full animate-pulse" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-base sm:text-xl font-bold text-gray-900 leading-tight">Eventos</span>
-                <span className="text-sm sm:text-lg italic text-primary -mt-0.5 sm:-mt-1 leading-tight">Salome</span>
+              <div className="relative flex items-center gap-2">
+                <div className="relative h-8 w-8 sm:h-9 sm:w-9">
+                  <Image
+                    src="/branding/logo.png"
+                    alt="Logo de Eventos Salome"
+                    fill
+                    sizes="(max-width: 640px) 36px, 40px"
+                    className="object-contain transition-transform group-hover:scale-105"
+                    priority
+                  />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-base sm:text-xl font-bold text-gray-900 leading-tight">Eventos</span>
+                  <span className="text-sm sm:text-lg italic text-primary -mt-0.5 sm:-mt-1 leading-tight">Salome</span>
+                </div>
               </div>
             </Link>
 
