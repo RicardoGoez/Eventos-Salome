@@ -198,40 +198,43 @@ function HomePageContent() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
         </div>
         
-        {/* Contenido */}
-        <div className="relative z-10 container mx-auto max-w-6xl py-6 sm:py-10 md:py-12 px-4 flex-1 flex flex-col justify-center">
-          <div className="flex flex-col items-center gap-5 sm:gap-6 md:gap-8">
-            <div className="text-center w-full" data-reveal>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 text-white leading-[1.2] sm:leading-tight drop-shadow-lg">
+        {/* Contenido - Todo abajo a la izquierda */}
+        <div className="relative z-10 container mx-auto max-w-6xl px-4 flex-1 flex flex-col justify-end pb-6 sm:pb-8 md:pb-10 lg:pb-12">
+          {/* Texto y botones - Alineados a la izquierda en la parte inferior */}
+          <div className="flex flex-col items-start gap-4 sm:gap-5 md:gap-6 max-w-2xl" data-reveal>
+            <div className="text-left w-full">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-3 md:mb-4 text-white leading-[1.2] sm:leading-tight drop-shadow-lg">
                 Bienvenido a Eventos <span className="italic">Salome</span>
               </h1>
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 md:mb-6 text-white drop-shadow-md font-medium">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-2 sm:mb-3 md:mb-4 text-white drop-shadow-md font-medium">
                 Sabores auténticos, momentos especiales
               </p>
-              <p className="text-sm sm:text-base md:text-lg mb-5 sm:mb-6 md:mb-8 text-white/95 max-w-2xl mx-auto drop-shadow-sm leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-5 md:mb-6 text-white/95 drop-shadow-sm leading-relaxed">
                 Descubre bebidas, comidas y postres elaborados con ingredientes frescos y de calidad.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="gap-2 w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-semibold"
-                  onClick={() => {
-                    document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  Ver Menú
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="inverted" 
-                  onClick={() => setIsCartOpen(true)}
-                  className="w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-semibold"
-                >
-                  Ver Carrito
-                </Button>
-              </div>
+            </div>
+            
+            {/* Botones - Abajo a la izquierda */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="gap-2 w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-semibold"
+                onClick={() => {
+                  document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Ver Menú
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="inverted" 
+                onClick={() => setIsCartOpen(true)}
+                className="w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-semibold"
+              >
+                Ver Carrito
+              </Button>
             </div>
           </div>
         </div>
