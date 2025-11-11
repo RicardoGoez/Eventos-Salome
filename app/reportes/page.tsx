@@ -15,6 +15,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import { Logo } from "@/components/logo";
 import { getLogoDataUrl } from "@/lib/utils/logo-loader";
+import { formatCOP } from "@/lib/utils";
 
 export default function ReportesPage() {
   const [fechaInicio, setFechaInicio] = useState(
@@ -195,11 +196,11 @@ export default function ReportesPage() {
     doc.text("Resumen", 14, y);
     y += 10;
     doc.setFontSize(11);
-    doc.text(`Total Ventas: $${reporteVentas.totalVentas.toFixed(2)}`, 14, y);
+    doc.text(`Total Ventas: ${formatCOP(reporteVentas.totalVentas)}`, 14, y);
     y += 7;
     doc.text(`Pedidos Totales: ${reporteVentas.pedidosTotales}`, 14, y);
     y += 7;
-    doc.text(`Promedio por Pedido: $${reporteVentas.promedioPorPedido.toFixed(2)}`, 14, y);
+    doc.text(`Promedio por Pedido: ${formatCOP(reporteVentas.promedioPorPedido)}`, 14, y);
     
     y += 15;
     doc.setFontSize(14);
@@ -213,7 +214,7 @@ export default function ReportesPage() {
       }
       doc.setFontSize(10);
       doc.text(
-        `${format(new Date(venta.fecha), "dd/MM/yyyy")}: $${venta.total.toFixed(2)} (${venta.cantidad} pedidos)`,
+        `${format(new Date(venta.fecha), "dd/MM/yyyy")}: ${formatCOP(venta.total)} (${venta.cantidad} pedidos)`,
         14,
         y
       );
@@ -309,7 +310,7 @@ export default function ReportesPage() {
                           </CardHeader>
                           <CardContent>
                             <div className="text-2xl font-bold">
-                              ${reporteVentas.totalVentas.toFixed(2)}
+                              {formatCOP(reporteVentas.totalVentas)}
                             </div>
                             <p className="text-xs text-muted-foreground">
                               Total acumulado
@@ -343,7 +344,7 @@ export default function ReportesPage() {
                           </CardHeader>
                           <CardContent>
                             <div className="text-2xl font-bold">
-                              ${reporteVentas.promedioPorPedido.toFixed(2)}
+                              {formatCOP(reporteVentas.promedioPorPedido)}
                             </div>
                             <p className="text-xs text-muted-foreground">
                               Ticket promedio
@@ -377,7 +378,7 @@ export default function ReportesPage() {
                                     {format(new Date(venta.fecha), "dd/MM", { locale: es })}
                                   </div>
                                   <div className="text-xs font-semibold">
-                                    ${venta.total.toFixed(0)}
+                                    {formatCOP(venta.total)}
                                   </div>
                                 </div>
                               ))
@@ -399,7 +400,7 @@ export default function ReportesPage() {
                                     {metodo.toLowerCase()}
                                   </span>
                                   <span className="text-sm font-semibold">
-                                    ${total.toFixed(2)}
+                                    {formatCOP(total)}
                                   </span>
                                 </div>
                               )
@@ -467,7 +468,7 @@ export default function ReportesPage() {
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold">
-                            ${reporteInventario.valorTotal.toFixed(2)}
+                            {formatCOP(reporteInventario.valorTotal)}
                           </div>
                           <p className="text-xs text-muted-foreground">
                             Valor del inventario
@@ -518,7 +519,7 @@ export default function ReportesPage() {
                             <TableCell className="capitalize">{producto.categoria.toLowerCase()}</TableCell>
                             <TableCell className="text-right">{producto.cantidadVendida}</TableCell>
                             <TableCell className="text-right font-semibold">
-                              ${producto.ingresos.toFixed(2)}
+                              {formatCOP(producto.ingresos)}
                             </TableCell>
                           </TableRow>
                         ))}

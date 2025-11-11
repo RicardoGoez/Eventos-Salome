@@ -11,6 +11,7 @@ import { ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { Pedido, EstadoPedido } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import { useMeseroData } from "@/contexts/mesero-data-context";
+import { formatCOP } from "@/lib/utils";
 
 export default function PedidoDetalleMeseroPage() {
   const params = useParams();
@@ -187,7 +188,7 @@ export default function PedidoDetalleMeseroPage() {
                             {item.producto?.nombre || "Producto"}
                           </p>
                           <p className="text-sm text-gray-700">
-                            Cantidad: {item.cantidad} x ${item.precioUnitario.toFixed(2)}
+                            Cantidad: {item.cantidad} x {formatCOP(item.precioUnitario)}
                           </p>
                           {item.notas && (
                             <p className="text-xs text-gray-600 mt-1">Nota: {item.notas}</p>
@@ -195,7 +196,7 @@ export default function PedidoDetalleMeseroPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold">${item.subtotal.toFixed(2)}</p>
+                        <p className="font-bold">{formatCOP(item.subtotal)}</p>
                       </div>
                     </div>
                   ))}
@@ -211,13 +212,13 @@ export default function PedidoDetalleMeseroPage() {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-700">Subtotal:</span>
-                  <span className="font-medium">${pedido.subtotal.toFixed(2)}</span>
+                  <span className="font-medium">{formatCOP(pedido.subtotal)}</span>
                 </div>
                 {pedido.descuento && pedido.descuento > 0 && (
                   <>
                     <div className="flex justify-between text-success">
                       <span>Descuento:</span>
-                      <span>-${pedido.descuento.toFixed(2)}</span>
+                      <span>-{formatCOP(pedido.descuento)}</span>
                     </div>
                     {pedido.descuentoAplicado && (
                       <p className="text-xs text-muted">
@@ -228,12 +229,12 @@ export default function PedidoDetalleMeseroPage() {
                 )}
                 <div className="flex justify-between">
                   <span className="text-gray-700">IVA (16%):</span>
-                  <span className="font-medium">${pedido.iva.toFixed(2)}</span>
+                  <span className="font-medium">{formatCOP(pedido.iva)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-xl font-bold pt-2">
                   <span>Total:</span>
-                  <span className="text-primary">${pedido.total.toFixed(2)}</span>
+                  <span className="text-primary">{formatCOP(pedido.total)}</span>
                 </div>
               </CardContent>
             </Card>

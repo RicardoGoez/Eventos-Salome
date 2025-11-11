@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, ShoppingCart, TrendingUp, AlertTriangle, Users, Clock, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
+import { formatCOP } from "@/lib/utils";
 import { es } from "date-fns/locale";
 import { AdminWrapper } from "@/components/admin-wrapper";
 import { useAdminData } from "@/contexts/admin-data-context";
@@ -262,7 +263,7 @@ function AdminDashboardPageContent() {
                 <TrendingUp className="h-4 w-4 text-gray-600" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="text-xl sm:text-2xl font-bold text-gray-900">${stats.ingresosDia.toFixed(2)}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{formatCOP(stats.ingresosDia)}</div>
                 <p className="text-xs text-gray-700">
                   Total de ventas hoy
                 </p>
@@ -339,7 +340,7 @@ function AdminDashboardPageContent() {
                         {format(new Date(venta.fecha), "dd/MM", { locale: es })}
                       </div>
                       <div className="text-xs font-semibold">
-                        ${venta.total.toFixed(0)}
+                        {formatCOP(venta.total)}
                       </div>
                     </div>
                   ))}
@@ -375,7 +376,7 @@ function AdminDashboardPageContent() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-gray-900">${producto.total.toFixed(2)}</p>
+                            <p className="font-semibold text-gray-900">{formatCOP(producto.total)}</p>
                           </div>
                         </div>
                       ))}
@@ -417,7 +418,7 @@ function AdminDashboardPageContent() {
                           </div>
                           <div className="text-2xl font-bold text-gray-900 mb-1">
                             {typeof kpi.valor === "number" && kpi.unidad === "COP"
-                              ? `$${kpi.valor.toFixed(2)}`
+                              ? formatCOP(kpi.valor)
                               : kpi.unidad === "%"
                               ? `${kpi.valor.toFixed(1)}%`
                               : `${kpi.valor.toFixed(1)} ${kpi.unidad}`}

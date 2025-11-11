@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AdminWrapper } from "@/components/admin-wrapper";
 import { useAdminData } from "@/contexts/admin-data-context";
 import { Logo } from "@/components/logo";
+import { formatCOP } from "@/lib/utils";
 
 function ProductosPageContent() {
   const { toast } = useToast();
@@ -542,8 +543,8 @@ function ProductosPageContent() {
                           {producto.nombre}
                         </TableCell>
                         <TableCell>{producto.categoria}</TableCell>
-                        <TableCell>${producto.precio.toFixed(2)}</TableCell>
-                        <TableCell>${producto.costo.toFixed(2)}</TableCell>
+                        <TableCell>{formatCOP(producto.precio)}</TableCell>
+                        <TableCell>{formatCOP(producto.costo)}</TableCell>
                         <TableCell>
                           <span
                             className={`rounded-full px-2 py-1 text-xs ${

@@ -12,6 +12,7 @@ import { DollarSign, Download, Plus } from "lucide-react";
 import { CierreCaja } from "@/types/domain";
 import { ReporteGenerator } from "@/lib/utils/reporte-generator";
 import { Logo } from "@/components/logo";
+import { formatCOP } from "@/lib/utils";
 
 export default function CierreCajaPage() {
   const [cierres, setCierres] = useState<CierreCaja[]>([]);
@@ -242,10 +243,10 @@ export default function CierreCajaPage() {
                         <TableCell className="font-medium">
                           {new Date(cierre.fecha).toLocaleDateString()}
                         </TableCell>
-                        <TableCell>${cierre.totalVentas.toFixed(2)}</TableCell>
-                        <TableCell>${cierre.totalEfectivo.toFixed(2)}</TableCell>
-                        <TableCell>${cierre.totalTarjeta.toFixed(2)}</TableCell>
-                        <TableCell>${cierre.totalTransferencia.toFixed(2)}</TableCell>
+                        <TableCell>{formatCOP(cierre.totalVentas)}</TableCell>
+                        <TableCell>{formatCOP(cierre.totalEfectivo)}</TableCell>
+                        <TableCell>{formatCOP(cierre.totalTarjeta)}</TableCell>
+                        <TableCell>{formatCOP(cierre.totalTransferencia)}</TableCell>
                         <TableCell>{cierre.numeroPedidos}</TableCell>
                         <TableCell>
                           <span

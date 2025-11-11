@@ -14,7 +14,7 @@ import {
   ArrowRight,
   X
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCOP } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -171,7 +171,7 @@ export function PedidoCard({
           <div className="flex items-center justify-between pt-2 border-t">
             <span className="text-sm font-medium">Total:</span>
             <span className="text-lg font-bold text-primary">
-              ${pedido.total.toFixed(2)}
+              {formatCOP(pedido.total)}
             </span>
           </div>
         </div>

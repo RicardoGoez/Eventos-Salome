@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatCOP } from "@/lib/utils";
 
 export function AnalisisABCPanel() {
   const { toast } = useToast();
@@ -148,7 +149,7 @@ export function AnalisisABCPanel() {
               </div>
               <div className="text-2xl font-bold text-gray-900">{reporte.categoriaA}</div>
               <div className="text-xs text-gray-600">
-                ${reporte.valorTotalA?.toFixed(2) || "0.00"}
+                {formatCOP(reporte.valorTotalA || 0)}
               </div>
               <div className="text-xs text-gray-500 mt-1">80% del valor</div>
             </div>
@@ -159,7 +160,7 @@ export function AnalisisABCPanel() {
               </div>
               <div className="text-2xl font-bold text-gray-900">{reporte.categoriaB}</div>
               <div className="text-xs text-gray-600">
-                ${reporte.valorTotalB?.toFixed(2) || "0.00"}
+                {formatCOP(reporte.valorTotalB || 0)}
               </div>
               <div className="text-xs text-gray-500 mt-1">15% del valor</div>
             </div>
@@ -170,7 +171,7 @@ export function AnalisisABCPanel() {
               </div>
               <div className="text-2xl font-bold text-gray-900">{reporte.categoriaC}</div>
               <div className="text-xs text-gray-600">
-                ${reporte.valorTotalC?.toFixed(2) || "0.00"}
+                {formatCOP(reporte.valorTotalC || 0)}
               </div>
               <div className="text-xs text-gray-500 mt-1">5% del valor</div>
             </div>
@@ -198,7 +199,7 @@ export function AnalisisABCPanel() {
                             {item.producto?.nombre || "Producto desconocido"}
                           </p>
                           <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
-                            <span>Valor: ${item.valorRotacion.toFixed(2)}</span>
+                            <span>Valor: {formatCOP(item.valorRotacion)}</span>
                             <span>Cantidad: {item.cantidadVendida}</span>
                             <span>% Acum: {item.porcentajeAcumulado.toFixed(1)}%</span>
                           </div>
@@ -231,7 +232,7 @@ export function AnalisisABCPanel() {
                             {item.producto?.nombre || "Producto desconocido"}
                           </p>
                           <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
-                            <span>Valor: ${item.valorRotacion.toFixed(2)}</span>
+                            <span>Valor: {formatCOP(item.valorRotacion)}</span>
                             <span>% Acum: {item.porcentajeAcumulado.toFixed(1)}%</span>
                           </div>
                         </div>
@@ -263,7 +264,7 @@ export function AnalisisABCPanel() {
                             {item.producto?.nombre || "Producto desconocido"}
                           </p>
                           <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
-                            <span>Valor: ${item.valorRotacion.toFixed(2)}</span>
+                            <span>Valor: {formatCOP(item.valorRotacion)}</span>
                             <span>% Acum: {item.porcentajeAcumulado.toFixed(1)}%</span>
                           </div>
                         </div>

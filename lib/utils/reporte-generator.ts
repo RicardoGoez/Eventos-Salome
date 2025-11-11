@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import { Pedido, CierreCaja, EstadoPedido } from "@/types/domain";
 import jsPDF from "jspdf";
 import { getLogoDataUrl } from "./logo-loader";
+import { formatCOP } from "../utils";
 
 export class ReporteGenerator {
   private static async drawHeader(
@@ -54,11 +55,11 @@ export class ReporteGenerator {
     const promedioDiario = totalVentas / 7;
 
     doc.setFontSize(12);
-    doc.text(`Total de Ventas: $${totalVentas.toFixed(2)}`, margin, y);
+    doc.text(`Total de Ventas: ${formatCOP(totalVentas)}`, margin, y);
     y += 8;
     doc.text(`Número de Ventas: ${numeroVentas}`, margin, y);
     y += 8;
-    doc.text(`Promedio Diario: $${promedioDiario.toFixed(2)}`, margin, y);
+    doc.text(`Promedio Diario: ${formatCOP(promedioDiario)}`, margin, y);
     y += 15;
 
     // Tabla de ventas
@@ -96,7 +97,7 @@ export class ReporteGenerator {
 
       doc.text(new Date(pedido.fecha).toLocaleDateString(), margin, y);
       doc.text(pedido.numero, margin + 40, y);
-      doc.text(`$${pedido.total.toFixed(2)}`, pageWidth - margin - 30, y, {
+      doc.text(formatCOP(pedido.total), pageWidth - margin - 30, y, {
         align: "right",
       });
       y += 6;
@@ -161,7 +162,7 @@ export class ReporteGenerator {
       IVA: 0,
       Total: totalVentas,
       "Método de Pago": `Total Ventas: ${numeroVentas}`,
-      Estado: `Promedio Diario: $${promedioDiario.toFixed(2)}`,
+      Estado: `Promedio Diario: ${formatCOP(promedioDiario)}`,
     });
 
     const ws = XLSX.utils.json_to_sheet(datos);
@@ -214,7 +215,7 @@ export class ReporteGenerator {
 
     // Resumen
     doc.setFontSize(12);
-    doc.text(`Total de Ventas: $${cierre.totalVentas.toFixed(2)}`, margin, y);
+    doc.text(`Total de Ventas: ${formatCOP(cierre.totalVentas)}`, margin, y);
     y += 8;
     doc.text(`Número de Pedidos: ${cierre.numeroPedidos}`, margin, y);
     y += 8;
@@ -229,12 +230,12 @@ export class ReporteGenerator {
     doc.text("Por Método de Pago:", margin, y);
     y += 8;
     doc.setFontSize(10);
-    doc.text(`Efectivo: $${cierre.totalEfectivo.toFixed(2)}`, margin + 10, y);
+    doc.text(`Efectivo: ${formatCOP(cierre.totalEfectivo)}`, margin + 10, y);
     y += 6;
-    doc.text(`Tarjeta: $${cierre.totalTarjeta.toFixed(2)}`, margin + 10, y);
+    doc.text(`Tarjeta: ${formatCOP(cierre.totalTarjeta)}`, margin + 10, y);
     y += 6;
     doc.text(
-      `Transferencia: $${cierre.totalTransferencia.toFixed(2)}`,
+      `Transferencia: ${formatCOP(cierre.totalTransferencia)}`,
       margin + 10,
       y
     );
@@ -243,7 +244,7 @@ export class ReporteGenerator {
     if (cierre.diferenciaEfectivo !== undefined) {
       doc.setFontSize(12);
       doc.text(
-        `Diferencia Efectivo: $${cierre.diferenciaEfectivo.toFixed(2)}`,
+        `Diferencia Efectivo: ${formatCOP(cierre.diferenciaEfectivo)}`,
         margin,
         y
       );

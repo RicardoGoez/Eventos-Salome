@@ -2,6 +2,7 @@ import { PedidoService } from "./pedido.service";
 import { CierreCajaService } from "./cierre-caja.service";
 import { KPIService } from "./kpi.service";
 import { AlertaNegocio, Pedido, EstadoPedido } from "@/types/domain";
+import { formatCOP } from "@/lib/utils";
 
 export interface UmbralesAlerta {
   ventasMinimas: number; // % de la meta
@@ -92,7 +93,7 @@ export class AlertaNegocioService {
         id: `ventas-${Date.now()}`,
         tipo: "VENTAS_BAJAS",
         severidad,
-        mensaje: `Ventas del día están ${Math.abs(desviacion).toFixed(1)}% por debajo del promedio. Meta: $${metaVentas.toFixed(2)}, Actual: $${ventasHoy.toFixed(2)}`,
+        mensaje: `Ventas del día están ${Math.abs(desviacion).toFixed(1)}% por debajo del promedio. Meta: ${formatCOP(metaVentas)}, Actual: ${formatCOP(ventasHoy)}`,
         valorActual: ventasHoy,
         valorEsperado: promedioVentas,
         desviacion,
@@ -193,7 +194,7 @@ export class AlertaNegocioService {
             id: `caja-${cierre.id}-${Date.now()}`,
             tipo: "DIFERENCIA_CAJA",
             severidad,
-            mensaje: `Diferencia en cierre de caja: $${diferenciaAbsoluta.toFixed(2)} (${diferenciaPorcentual.toFixed(2)}%). Máximo permitido: ${this.umbrales.diferenciaMaximaCaja}%`,
+            mensaje: `Diferencia en cierre de caja: ${formatCOP(diferenciaAbsoluta)} (${diferenciaPorcentual.toFixed(2)}%). Máximo permitido: ${this.umbrales.diferenciaMaximaCaja}%`,
             valorActual: diferenciaPorcentual,
             valorEsperado: this.umbrales.diferenciaMaximaCaja,
             desviacion: diferenciaPorcentual - this.umbrales.diferenciaMaximaCaja,

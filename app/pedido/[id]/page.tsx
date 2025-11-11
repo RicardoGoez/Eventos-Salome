@@ -11,6 +11,7 @@ import { Loader2, Download, QrCode, ArrowLeft, Printer, Share2, MapPin, CreditCa
 import { Pedido, EstadoPedido } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { formatCOP } from "@/lib/utils";
 
 export default function PedidoDetallePage() {
   const router = useRouter();
@@ -199,7 +200,7 @@ export default function PedidoDetallePage() {
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-primary">
-                  ${pedido.total.toFixed(2)}
+                  {formatCOP(pedido.total)}
                 </p>
                 <p className="text-sm text-muted">Total del pedido</p>
               </div>
@@ -296,10 +297,10 @@ export default function PedidoDetallePage() {
                         <div className="text-sm text-gray-600">
                           <span>Cantidad: {item.cantidad}</span>
                           <span className="mx-2">•</span>
-                          <span>Precio unitario: ${item.precioUnitario.toFixed(2)}</span>
+                          <span>Precio unitario: {formatCOP(item.precioUnitario)}</span>
                         </div>
                         <p className="font-bold text-lg">
-                          ${(item.precioUnitario * item.cantidad).toFixed(2)}
+                          {formatCOP(item.precioUnitario * item.cantidad)}
                         </p>
                       </div>
                     </div>
@@ -320,13 +321,13 @@ export default function PedidoDetallePage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-muted">Subtotal:</span>
-                <span className="font-medium">${pedido.subtotal.toFixed(2)}</span>
+                <span className="font-medium">{formatCOP(pedido.subtotal)}</span>
               </div>
               {pedido.descuento && pedido.descuento > 0 && (
                 <>
                   <div className="flex justify-between text-green-600">
                     <span>Descuento:</span>
-                    <span>-${pedido.descuento.toFixed(2)}</span>
+                    <span>-{formatCOP(pedido.descuento)}</span>
                   </div>
                   {pedido.descuentoAplicado && (
                     <p className="text-xs text-muted">
@@ -337,12 +338,12 @@ export default function PedidoDetallePage() {
               )}
               <div className="flex justify-between">
                 <span className="text-muted">IVA (16%):</span>
-                <span className="font-medium">${pedido.iva.toFixed(2)}</span>
+                <span className="font-medium">{formatCOP(pedido.iva)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-xl font-bold pt-2">
                 <span>Total:</span>
-                <span className="text-primary">${pedido.total.toFixed(2)}</span>
+                <span className="text-primary">{formatCOP(pedido.total)}</span>
               </div>
             </div>
           </CardContent>

@@ -10,6 +10,7 @@ import { Loader2, CheckCircle2, Clock, Package, Truck, XCircle, Download, QrCode
 import { Pedido, EstadoPedido } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { formatCOP } from "@/lib/utils";
 
 const estados = [
   { estado: EstadoPedido.PENDIENTE, label: "Pendiente", icon: Clock, color: "text-warning", bgColor: "bg-warning/20" },
@@ -249,21 +250,21 @@ export default function SeguimientoPage() {
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted">Subtotal:</span>
-                <span className="font-medium">${pedido.subtotal.toFixed(2)}</span>
+                <span className="font-medium">{formatCOP(pedido.subtotal)}</span>
               </div>
               {pedido.descuento && pedido.descuento > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Descuento:</span>
-                  <span>-${pedido.descuento.toFixed(2)}</span>
+                  <span>-{formatCOP(pedido.descuento)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-muted">IVA (16%):</span>
-                <span className="font-medium">${pedido.iva.toFixed(2)}</span>
+                <span className="font-medium">{formatCOP(pedido.iva)}</span>
               </div>
               <div className="pt-2 border-t flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span className="text-primary">${pedido.total.toFixed(2)}</span>
+                <span className="text-primary">{formatCOP(pedido.total)}</span>
               </div>
             </CardContent>
           </Card>
@@ -289,12 +290,12 @@ export default function SeguimientoPage() {
                     <div>
                       <h4 className="font-semibold">{item.producto?.nombre || "Producto"}</h4>
                       <p className="text-sm text-muted">
-                        Cantidad: {item.cantidad} x ${item.precioUnitario.toFixed(2)}
+                        Cantidad: {item.cantidad} x {formatCOP(item.precioUnitario)}
                       </p>
                     </div>
                   </div>
                   <p className="font-bold">
-                    ${(item.precioUnitario * item.cantidad).toFixed(2)}
+                    {formatCOP(item.precioUnitario * item.cantidad)}
                   </p>
                 </div>
               ))}

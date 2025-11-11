@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Producto } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
+import { formatCOP } from "@/lib/utils";
 
 export default function ProductoDetallePage() {
   const params = useParams();
@@ -138,7 +139,7 @@ export default function ProductoDetallePage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl font-bold text-primary">${producto.precio.toFixed(2)}</span>
+                  <span className="text-3xl font-bold text-primary">{formatCOP(producto.precio)}</span>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" onClick={() => setCantidad(Math.max(1, cantidad - 1))}>
                       -

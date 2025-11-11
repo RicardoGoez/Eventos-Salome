@@ -890,7 +890,7 @@ function PedidosPageContent() {
                           {pedido.clienteNombre || pedido.cliente?.nombre || "-"}
                         </TableCell>
                         <TableCell className="text-gray-800">{pedido.items.length} item(s)</TableCell>
-                        <TableCell className="text-gray-900 font-semibold">${pedido.total.toFixed(2)}</TableCell>
+                        <TableCell className="text-gray-900 font-semibold">{formatCurrency(pedido.total)}</TableCell>
                         <TableCell>
                           <span
                             className={`rounded-full px-2 py-1 text-xs font-medium ${getEstadoColor(
@@ -1008,8 +1008,8 @@ function PedidosPageContent() {
                               {item.producto?.nombre || item.productoId}
                             </TableCell>
                             <TableCell className="text-gray-800">{item.cantidad}</TableCell>
-                            <TableCell className="text-gray-800">${item.precioUnitario.toFixed(2)}</TableCell>
-                            <TableCell className="text-gray-800 font-semibold">${item.subtotal.toFixed(2)}</TableCell>
+                            <TableCell className="text-gray-800">{formatCurrency(item.precioUnitario)}</TableCell>
+                            <TableCell className="text-gray-800 font-semibold">{formatCurrency(item.subtotal)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -1019,7 +1019,7 @@ function PedidosPageContent() {
                             Total:
                           </TableCell>
                           <TableCell className="font-bold">
-                            ${selectedPedido.total.toFixed(2)}
+                            {formatCurrency(selectedPedido.total)}
                           </TableCell>
                         </TableRow>
                       </TableFooter>

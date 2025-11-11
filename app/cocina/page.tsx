@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { differenceInSeconds, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn, formatCOP } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 
 type RealtimeStatus = "disabled" | "connecting" | "connected" | "disconnected" | "error";
@@ -610,11 +610,11 @@ export default function CocinaDashboardPage() {
                   <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
                       <p className="font-medium">{item.producto?.nombre || "Producto"}</p>
-                      <p className="text-sm text-muted">Cantidad: {item.cantidad} x ${item.precioUnitario.toFixed(2)}</p>
+                      <p className="text-sm text-muted">Cantidad: {item.cantidad} x {formatCOP(item.precioUnitario)}</p>
                       {item.notas && <p className="text-xs text-muted mt-1">Nota: {item.notas}</p>}
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">${item.subtotal.toFixed(2)}</p>
+                      <p className="font-bold">{formatCOP(item.subtotal)}</p>
                     </div>
                   </div>
                 ))}
@@ -623,22 +623,22 @@ export default function CocinaDashboardPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted">Subtotal:</span>
-                  <span className="font-medium">${detallePedido.subtotal.toFixed(2)}</span>
+                  <span className="font-medium">{formatCOP(detallePedido.subtotal)}</span>
                 </div>
                 {detallePedido.descuento && detallePedido.descuento > 0 && (
                   <div className="flex justify-between text-sm text-success">
                     <span>Descuento:</span>
-                    <span>-${detallePedido.descuento.toFixed(2)}</span>
+                    <span>-{formatCOP(detallePedido.descuento)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted">IVA (16%):</span>
-                  <span className="font-medium">${detallePedido.iva.toFixed(2)}</span>
+                  <span className="font-medium">{formatCOP(detallePedido.iva)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total:</span>
-                  <span className="text-primary">${detallePedido.total.toFixed(2)}</span>
+                  <span className="text-primary">{formatCOP(detallePedido.total)}</span>
                 </div>
                 <div className="pt-2 flex gap-2">
                   {detallePedido.estado === EstadoPedido.PENDIENTE && (

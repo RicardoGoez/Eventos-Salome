@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, X, Search } from "lucide-react";
 import { Producto, MetodoPago, Mesa } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
+import { formatCOP } from "@/lib/utils";
 
 interface CreatePedidoDialogProps {
   onPedidoCreatedAction: () => void;
@@ -223,7 +224,7 @@ export function CreatePedidoDialog({ onPedidoCreatedAction, mesaIdPredefinida }:
                     {producto.nombre}
                   </span>
                   <span className="text-xs text-primary font-semibold">
-                    ${producto.precio.toFixed(2)}
+                    {formatCOP(producto.precio)}
                   </span>
                 </button>
               ))}
@@ -287,7 +288,7 @@ export function CreatePedidoDialog({ onPedidoCreatedAction, mesaIdPredefinida }:
                         {item.producto?.nombre || "Producto"}
                       </p>
                       <p className="text-xs text-muted">
-                        ${(item.precio || 0).toFixed(2)} c/u
+                        {formatCOP(item.precio || 0)} c/u
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -337,16 +338,16 @@ export function CreatePedidoDialog({ onPedidoCreatedAction, mesaIdPredefinida }:
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted">Subtotal:</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">{formatCOP(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted">IVA (16%):</span>
-                <span className="font-medium">${iva.toFixed(2)}</span>
+                <span className="font-medium">{formatCOP(iva)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span className="text-primary">${total.toFixed(2)}</span>
+                <span className="text-primary">{formatCOP(total)}</span>
               </div>
             </CardContent>
           </Card>
@@ -369,7 +370,7 @@ export function CreatePedidoDialog({ onPedidoCreatedAction, mesaIdPredefinida }:
             className="w-full"
             size="lg"
           >
-            {loading ? "Creando pedido..." : `Crear Pedido - $${total.toFixed(2)}`}
+            {loading ? "Creando pedido..." : `Crear Pedido - ${formatCOP(total)}`}
           </Button>
         </div>
       </div>
