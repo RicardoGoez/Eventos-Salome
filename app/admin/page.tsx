@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, ShoppingCart, TrendingUp, AlertTriangle, Users, Clock } from "lucide-react";
+import { Package, ShoppingCart, TrendingUp, AlertTriangle, Users, Clock, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AdminWrapper } from "@/components/admin-wrapper";
@@ -45,13 +45,8 @@ function AdminDashboardPageContent() {
   const [actividadesRecientes, setActividadesRecientes] = useState<ActividadReciente[]>([]);
   const [ventasPorDia, setVentasPorDia] = useState<{ fecha: string; total: number }[]>([]);
   const [loadingExtra, setLoadingExtra] = useState(false);
-
-  useEffect(() => {
-    loadDashboardData();
-    // Actualizar cada 30 segundos
-    const interval = setInterval(loadDashboardData, 30000);
-    return () => clearInterval(interval);
-  }, [productos, pedidos]);
+  const [kpis, setKpis] = useState<any[]>([]);
+  const [loadingKpis, setLoadingKpis] = useState(false);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -175,6 +170,38 @@ function AdminDashboardPageContent() {
       setLoadingExtra(false);
     }
   }, [productos, pedidos]);
+
+  const loadKPIs = useCallback(async () => {
+    try {
+      setLoadingKpis(true);
+      const hoy = new Date();
+      const inicio = new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000);
+      
+      const response = await fetch(
+        `/api/kpis?fechaInicio=${inicio.toISOString()}&fechaFin=${hoy.toISOString()}`
+      );
+      
+      if (response.ok) {
+        const kpisData = await response.json();
+        setKpis(Array.isArray(kpisData) ? kpisData : []);
+      }
+    } catch (error) {
+      console.error("Error al cargar KPIs:", error);
+    } finally {
+      setLoadingKpis(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+    loadKPIs();
+    // Actualizar cada 30 segundos
+    const interval = setInterval(() => {
+      loadDashboardData();
+      loadKPIs();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [productos, pedidos, loadDashboardData, loadKPIs]);
 
   // Memoizar maxVentas
   const maxVentas = useMemo(() => 
@@ -357,6 +384,75 @@ function AdminDashboardPageContent() {
               </CardContent>
             </Card>
           </div>
+
+          {/* KPIs Avanzados */}
+          {kpis.length > 0 && (
+            <div className="mt-6 sm:mt-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    KPIs Avanzados
+                  </CardTitle>
+                  <CardDescription>
+                    Indicadores clave de rendimiento en tiempo real
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {kpis.map((kpi) => {
+                      const tendenciaIcon = kpi.tendencia === "up" ? "↑" : kpi.tendencia === "down" ? "↓" : "→";
+                      const tendenciaColor = kpi.tendencia === "up" ? "text-green-600" : kpi.tendencia === "down" ? "text-red-600" : "text-gray-600";
+                      
+                      return (
+                        <div
+                          key={kpi.id}
+                          className="p-4 rounded-lg border border-gray-200 bg-white"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-sm font-medium text-gray-900">{kpi.nombre}</h4>
+                            <span className={`text-xs font-semibold ${tendenciaColor}`}>
+                              {tendenciaIcon}
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-gray-900 mb-1">
+                            {typeof kpi.valor === "number" && kpi.unidad === "COP"
+                              ? `$${kpi.valor.toFixed(2)}`
+                              : kpi.unidad === "%"
+                              ? `${kpi.valor.toFixed(1)}%`
+                              : `${kpi.valor.toFixed(1)} ${kpi.unidad}`}
+                          </div>
+                          {kpi.comparativo !== 0 && (
+                            <p className={`text-xs ${kpi.comparativo > 0 ? "text-green-600" : "text-red-600"}`}>
+                              {kpi.comparativo > 0 ? "+" : ""}{kpi.comparativo.toFixed(1)}% vs período anterior
+                            </p>
+                          )}
+                          {kpi.meta && (
+                            <div className="mt-2">
+                              <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                                <span>Meta: {kpi.meta}{kpi.unidad === "%" ? "%" : ""}</span>
+                                <span>{((kpi.valor / kpi.meta) * 100).toFixed(0)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className={`h-1.5 rounded-full ${
+                                    kpi.valor >= kpi.meta ? "bg-green-600" : "bg-yellow-500"
+                                  }`}
+                                  style={{
+                                    width: `${Math.min(100, (kpi.valor / kpi.meta) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <div className="mt-6 sm:mt-8">
             <Card>

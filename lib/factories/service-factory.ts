@@ -34,6 +34,14 @@ import { MesaService } from "../services/mesa.service";
 import { DescuentoService } from "../services/descuento.service";
 import { CierreCajaService } from "../services/cierre-caja.service";
 import { AuditoriaService } from "../services/auditoria.service";
+import { AlertaInventarioService } from "../services/alerta-inventario.service";
+import { AnalisisABCService } from "../services/analisis-abc.service";
+import { PronosticoDemandaService } from "../services/pronostico-demanda.service";
+import { PuntoReordenService } from "../services/punto-reorden.service";
+import { KPIService } from "../services/kpi.service";
+import { AlertaNegocioService } from "../services/alerta-negocio.service";
+import { NotificacionService } from "../services/notificacion.service";
+import { PagoService } from "../services/pago.service";
 
 // Factory Pattern - Centraliza la creación de servicios y repositorios
 export class ServiceFactory {
@@ -61,6 +69,14 @@ export class ServiceFactory {
   private static descuentoService?: DescuentoService;
   private static cierreCajaService?: CierreCajaService;
   private static auditoriaService?: AuditoriaService;
+  private static alertaInventarioService?: AlertaInventarioService;
+  private static analisisABCService?: AnalisisABCService;
+  private static pronosticoDemandaService?: PronosticoDemandaService;
+  private static puntoReordenService?: PuntoReordenService;
+  private static kpiService?: KPIService;
+  private static alertaNegocioService?: AlertaNegocioService;
+  private static notificacionService?: NotificacionService;
+  private static pagoService?: PagoService;
 
   static getProductoRepository(): ProductoRepository {
     if (!this.productoRepository) {
@@ -240,6 +256,83 @@ export class ServiceFactory {
     return this.auditoriaService;
   }
 
+  static getAlertaInventarioService(): AlertaInventarioService {
+    if (!this.alertaInventarioService) {
+      this.alertaInventarioService = new AlertaInventarioService(
+        this.getInventarioService(),
+        this.getProductoService()
+      );
+    }
+    return this.alertaInventarioService;
+  }
+
+  static getAnalisisABCService(): AnalisisABCService {
+    if (!this.analisisABCService) {
+      this.analisisABCService = new AnalisisABCService(
+        this.getProductoService(),
+        this.getPedidoService()
+      );
+    }
+    return this.analisisABCService;
+  }
+
+  static getPronosticoDemandaService(): PronosticoDemandaService {
+    if (!this.pronosticoDemandaService) {
+      this.pronosticoDemandaService = new PronosticoDemandaService(
+        this.getProductoService(),
+        this.getPedidoService()
+      );
+    }
+    return this.pronosticoDemandaService;
+  }
+
+  static getPuntoReordenService(): PuntoReordenService {
+    if (!this.puntoReordenService) {
+      this.puntoReordenService = new PuntoReordenService(
+        this.getInventarioService(),
+        this.getPronosticoDemandaService(),
+        this.getPedidoService()
+      );
+    }
+    return this.puntoReordenService;
+  }
+
+  static getKPIService(): KPIService {
+    if (!this.kpiService) {
+      this.kpiService = new KPIService(
+        this.getPedidoService(),
+        this.getInventarioService(),
+        this.getCierreCajaService()
+      );
+    }
+    return this.kpiService;
+  }
+
+  static getAlertaNegocioService(): AlertaNegocioService {
+    if (!this.alertaNegocioService) {
+      this.alertaNegocioService = new AlertaNegocioService(
+        this.getPedidoService(),
+        this.getCierreCajaService(),
+        this.getKPIService()
+      );
+    }
+    return this.alertaNegocioService;
+  }
+
+  static getNotificacionService(): NotificacionService {
+    if (!this.notificacionService) {
+      this.notificacionService = new NotificacionService();
+    }
+    return this.notificacionService;
+  }
+
+  static getPagoService(): PagoService {
+    if (!this.pagoService) {
+      this.pagoService = new PagoService();
+    }
+    return this.pagoService;
+  }
+
   // Método para reiniciar (útil para testing)
   static reset() {
     this.productoRepository = undefined;
@@ -263,5 +356,13 @@ export class ServiceFactory {
     this.descuentoService = undefined;
     this.cierreCajaService = undefined;
     this.auditoriaService = undefined;
+    this.alertaInventarioService = undefined;
+    this.analisisABCService = undefined;
+    this.pronosticoDemandaService = undefined;
+    this.puntoReordenService = undefined;
+    this.kpiService = undefined;
+    this.alertaNegocioService = undefined;
+    this.notificacionService = undefined;
+    this.pagoService = undefined;
   }
 }

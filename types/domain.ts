@@ -205,3 +205,84 @@ export interface Pedido {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Tipos para nuevas funcionalidades avanzadas
+
+export interface AlertaInventario {
+  id: string;
+  inventarioItemId: string;
+  inventarioItem?: InventarioItem;
+  tipo: "STOCK_BAJO" | "PROXIMO_VENCIMIENTO" | "SIN_STOCK";
+  severidad: "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+  mensaje: string;
+  leida: boolean;
+  fecha: Date;
+  createdAt: Date;
+}
+
+export interface ClasificacionABC {
+  productoId: string;
+  producto?: Producto;
+  categoria: "A" | "B" | "C";
+  valorRotacion: number;
+  porcentajeAcumulado: number;
+  cantidadVendida: number;
+  ingresos: number;
+}
+
+export interface PronosticoDemanda {
+  productoId: string;
+  producto?: Producto;
+  periodo: Date;
+  demandaPronosticada: number;
+  nivelConfianza: number; // 0-1
+  metodo: "SUAVIZADO_EXPONENCIAL" | "PROMEDIO_MOVIL" | "REGRESION";
+  createdAt: Date;
+}
+
+export interface PuntoReorden {
+  inventarioItemId: string;
+  inventarioItem?: InventarioItem;
+  puntoReorden: number; // s
+  cantidadReorden: number; // Q
+  nivelServicio: number; // 0-1 (ej: 0.95 = 95%)
+  tiempoEntrega: number; // días
+  demandaPromedio: number;
+  desviacionEstandar: number;
+  actualizado: Date;
+}
+
+export interface KPI {
+  id: string;
+  nombre: string;
+  valor: number;
+  unidad: string;
+  tendencia: "up" | "down" | "stable";
+  comparativo: number; // % vs período anterior
+  meta?: number;
+  periodo: Date;
+}
+
+export interface AlertaNegocio {
+  id: string;
+  tipo: "VENTAS_BAJAS" | "TIEMPO_EXCESIVO" | "DIFERENCIA_CAJA" | "ERROR_ALTO" | "SATISFACCION_BAJA";
+  severidad: "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+  mensaje: string;
+  valorActual: number;
+  valorEsperado: number;
+  desviacion: number; // %
+  leida: boolean;
+  fecha: Date;
+  createdAt: Date;
+}
+
+export interface Notificacion {
+  id: string;
+  usuarioId: string;
+  tipo: "PUSH" | "EMAIL" | "SMS" | "IN_APP";
+  titulo: string;
+  mensaje: string;
+  leida: boolean;
+  fecha: Date;
+  createdAt: Date;
+}
