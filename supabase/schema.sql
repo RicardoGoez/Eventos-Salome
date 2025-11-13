@@ -31,7 +31,7 @@ CREATE TABLE productos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nombre VARCHAR(255) NOT NULL,
     descripcion TEXT,
-    categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('BEBIDA', 'COMIDA', 'POSTRE', 'SNACK', 'INGREDIENTE')),
+    categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('COMIDA_RAPIDA', 'BEBIDA', 'SNACK', 'ACOMPANAMIENTO', 'PLATO_FUERTE')),
     precio DECIMAL(10, 2) NOT NULL CHECK (precio >= 0),
     costo DECIMAL(10, 2) NOT NULL CHECK (costo >= 0),
     disponible BOOLEAN DEFAULT true,

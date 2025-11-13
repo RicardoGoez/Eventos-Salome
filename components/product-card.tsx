@@ -15,19 +15,19 @@ interface ProductCardProps {
 }
 
 const categoriaLabels: Record<CategoriaProducto, string> = {
+  [CategoriaProducto.COMIDA_RAPIDA]: "Comida Rápida",
   [CategoriaProducto.BEBIDA]: "Bebida",
-  [CategoriaProducto.COMIDA]: "Comida",
-  [CategoriaProducto.POSTRE]: "Postre",
   [CategoriaProducto.SNACK]: "Snack",
-  [CategoriaProducto.INGREDIENTE]: "Ingrediente",
+  [CategoriaProducto.ACOMPANAMIENTO]: "Acompañamiento",
+  [CategoriaProducto.PLATO_FUERTE]: "Plato Fuerte",
 };
 
 const categoriaColors: Record<CategoriaProducto, string> = {
+  [CategoriaProducto.COMIDA_RAPIDA]: "bg-orange-100 text-orange-700 border border-orange-300",
   [CategoriaProducto.BEBIDA]: "bg-info/20 text-info-700 border border-info/30",
-  [CategoriaProducto.COMIDA]: "bg-success/20 text-success-700 border border-success/30",
-  [CategoriaProducto.POSTRE]: "bg-pink-100 text-pink-700 border border-pink-300",
   [CategoriaProducto.SNACK]: "bg-warning/20 text-warning-700 border border-warning/30",
-  [CategoriaProducto.INGREDIENTE]: "bg-gray-800 text-white border border-gray-700 shadow-md",
+  [CategoriaProducto.ACOMPANAMIENTO]: "bg-green-100 text-green-700 border border-green-300",
+  [CategoriaProducto.PLATO_FUERTE]: "bg-success/20 text-success-700 border border-success/30",
 };
 
 export function ProductCard({

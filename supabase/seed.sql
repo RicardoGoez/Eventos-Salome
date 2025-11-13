@@ -48,53 +48,55 @@ WHERE NOT EXISTS (
 );
 
 -- ============================================
--- PRODUCTOS BÁSICOS - CAFETERÍA UNIVERSITARIA
--- 4 productos por categoría (BEBIDA, COMIDA, POSTRE, SNACK)
+-- PRODUCTOS - CAFETERÍA UNIVERSITARIA
+-- Universidad Cooperativa de Colombia
 -- Precios en Pesos Colombianos (COP)
 -- ============================================
 INSERT INTO productos (nombre, descripcion, categoria, precio, costo, disponible, imagen) 
 SELECT * FROM (VALUES
--- BEBIDAS (4 productos)
-('Café Tinto', 'Café colombiano tradicional, taza mediana', 'BEBIDA', 2500, 800, true, 'https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=1200&auto=format&fit=crop'),
-('Café con Leche', 'Café con leche caliente, taza mediana', 'BEBIDA', 3500, 1200, true, 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=1200&auto=format&fit=crop'),
-('Jugo de Naranja Natural', 'Jugo de naranja recién exprimido, vaso 350ml', 'BEBIDA', 4000, 1500, true, 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=1200&auto=format&fit=crop'),
-('Avena Caliente', 'Avena con leche, canela y panela, taza mediana', 'BEBIDA', 3000, 1000, true, 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?q=80&w=1200&auto=format&fit=crop'),
+-- COMIDAS RÁPIDAS (7 productos)
+('Panzerotti', 'Panzerotti relleno, delicioso y crujiente', 'COMIDA_RAPIDA', 3500, 1500, true, 'https://images.unsplash.com/photo-1539252554453-80ab65ce3586?q=80&w=1200&auto=format&fit=crop'),
+('Pastelitos de Pollo', 'Pastelitos de pollo fritos, porción individual', 'COMIDA_RAPIDA', 3000, 1200, true, 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?q=80&w=1200&auto=format&fit=crop'),
+('Carimañolas', 'Carimañolas de yuca rellenas, porción individual', 'COMIDA_RAPIDA', 2000, 800, true, 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=1200&auto=format&fit=crop'),
+('Buñuelos', 'Buñuelos de maíz, porción de 3 unidades', 'COMIDA_RAPIDA', 2000, 800, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Kibbes', 'Kibbes de carne, porción individual', 'COMIDA_RAPIDA', 4500, 2000, true, 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?q=80&w=1200&auto=format&fit=crop'),
+('Sándwich Jamón con Queso', 'Sándwich de jamón y queso, pan fresco', 'COMIDA_RAPIDA', 3000, 1200, true, 'https://images.unsplash.com/photo-1539252554453-80ab65ce3586?q=80&w=1200&auto=format&fit=crop'),
+('Cubanitos', 'Cubanitos de jamón y queso, porción individual', 'COMIDA_RAPIDA', 5000, 2200, true, 'https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=1200&auto=format&fit=crop'),
 
--- COMIDAS (4 productos)
-('Sandwich de Pollo', 'Sandwich con pollo desmechado, lechuga, tomate y mayonesa', 'COMIDA', 8500, 3500, true, 'https://images.unsplash.com/photo-1539252554453-80ab65ce3586?q=80&w=1200&auto=format&fit=crop'),
-('Perro Caliente', 'Perro caliente con salchicha, papas, salsas y queso', 'COMIDA', 6000, 2500, true, 'https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=1200&auto=format&fit=crop'),
-('Empanada de Carne', 'Empanada frita rellena de carne molida, papa y arroz', 'COMIDA', 2500, 1000, true, 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?q=80&w=1200&auto=format&fit=crop'),
-('Arepa con Queso', 'Arepa de maíz con queso derretido', 'COMIDA', 3000, 1200, true, 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=1200&auto=format&fit=crop'),
+-- BEBIDAS (7 productos)
+('Capuchinos', 'Capuchino caliente con espuma de leche', 'BEBIDA', 4000, 1500, true, 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=1200&auto=format&fit=crop'),
+('Café con Leche', 'Café con leche caliente, taza mediana', 'BEBIDA', 2000, 800, true, 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=1200&auto=format&fit=crop'),
+('Café', 'Café colombiano tradicional, taza mediana', 'BEBIDA', 1500, 600, true, 'https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=1200&auto=format&fit=crop'),
+('Jugos Hit', 'Jugos Hit envasados, variedad de sabores', 'BEBIDA', 3000, 1200, true, 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=1200&auto=format&fit=crop'),
+('Jugos Naturales', 'Jugos naturales recién exprimidos, vaso 350ml', 'BEBIDA', 2500, 1000, true, 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=1200&auto=format&fit=crop'),
+('Gaseosa', 'Gaseosa en lata o botella, variedad de sabores', 'BEBIDA', 3000, 1200, true, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?q=80&w=1200&auto=format&fit=crop'),
+('Agua', 'Agua embotellada, 500ml', 'BEBIDA', 2500, 1000, true, 'https://images.unsplash.com/photo-1548839140-5a941b7567a4?q=80&w=1200&auto=format&fit=crop'),
 
--- POSTRES (4 productos)
-('Tres Leches', 'Torta tres leches casera, porción individual', 'POSTRE', 5000, 2000, true, 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=1200&auto=format&fit=crop'),
-('Flan de Caramelo', 'Flan casero con caramelo, porción individual', 'POSTRE', 4000, 1500, true, 'https://images.unsplash.com/photo-1606312619070-d48b4e8c6e7e?q=80&w=1200&auto=format&fit=crop'),
-('Helado de Vainilla', 'Helado de vainilla, 1 bola', 'POSTRE', 3500, 1200, true, 'https://images.unsplash.com/photo-1563805042-7684c019e1b5?q=80&w=1200&auto=format&fit=crop'),
-('Brownie con Helado', 'Brownie casero con helado de vainilla', 'POSTRE', 6000, 2500, true, 'https://images.unsplash.com/photo-1606313564200-e75d5e30476b?q=80&w=1200&auto=format&fit=crop'),
+-- SNACKS (1 producto)
+('Mekatos', 'Mekatos, paquete individual', 'SNACK', 2500, 1000, true, 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=1200&auto=format&fit=crop'),
 
--- SNACKS (4 productos)
-('Papas Fritas', 'Papas fritas caseras, porción mediana', 'SNACK', 4000, 1500, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
-('Chocorramo', 'Chocorramo individual, marca reconocida', 'SNACK', 2500, 1000, true, 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=1200&auto=format&fit=crop'),
-('Galletas de Avena', 'Galletas de avena caseras, paquete de 3 unidades', 'SNACK', 3000, 1200, true, 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=1200&auto=format&fit=crop'),
-('Chicharrón', 'Chicharrón de cerdo frito, porción pequeña', 'SNACK', 5000, 2000, true, 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?q=80&w=1200&auto=format&fit=crop')
+-- ACOMPAÑAMIENTOS (12 productos)
+('Yuca', 'Yuca cocida, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Queso', 'Queso fresco, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?q=80&w=1200&auto=format&fit=crop'),
+('Arepa', 'Arepa de maíz, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=1200&auto=format&fit=crop'),
+('Chorizo', 'Chorizo frito, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?q=80&w=1200&auto=format&fit=crop'),
+('Auyama', 'Auyama cocida, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Berenjena', 'Berenjena cocida, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Patacón', 'Patacón frito, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Habichuelas', 'Habichuelas guisadas, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Papa Cocida', 'Papa cocida, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Cabeza de Gato', 'Cabeza de gato, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Plátano Amarillo', 'Plátano amarillo cocido, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop'),
+('Huevos (revueltos o cocidos)', 'Huevos revueltos o cocidos, porción individual', 'ACOMPANAMIENTO', 2500, 1000, true, 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=1200&auto=format&fit=crop'),
+
+-- PLATOS FUERTES (5 productos)
+('Sopas', 'Sopa del día, porción individual', 'PLATO_FUERTE', 4000, 1800, true, 'https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=1200&auto=format&fit=crop'),
+('Desvare', 'Desvare completo, plato fuerte', 'PLATO_FUERTE', 6000, 2800, true, 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1200&auto=format&fit=crop'),
+('Corrientes', 'Plato corriente completo, plato fuerte', 'PLATO_FUERTE', 10000, 4500, true, 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1200&auto=format&fit=crop'),
+('Porción de Arroz', 'Porción de arroz, acompañamiento', 'PLATO_FUERTE', 2000, 800, true, 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=1200&auto=format&fit=crop'),
+('Porción de Proteína', 'Porción de proteína (carne, pollo o pescado)', 'PLATO_FUERTE', 4000, 1800, true, 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1200&auto=format&fit=crop')
 ) AS v(nombre, descripcion, categoria, precio, costo, disponible, imagen)
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE productos.nombre = v.nombre);
-
--- ============================================
--- INGREDIENTES VENDIBLES (4 productos)
--- Precios en Pesos Colombianos (COP)
--- ============================================
-INSERT INTO productos (nombre, descripcion, categoria, precio, costo, disponible, imagen)
-SELECT nombre, descripcion, categoria, precio, costo, disponible, imagen
-FROM (VALUES
-  ('Café en Grano 500g', 'Café colombiano en grano, tueste medio. Bolsa de 500g. Ideal para preparar en casa.', 'INGREDIENTE', 25000, 15000, true, 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1200&auto=format&fit=crop'),
-  ('Azúcar Blanca 1kg', 'Azúcar blanca refinada. Bolsa de 1kg.', 'INGREDIENTE', 3500, 2000, true, 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=1200&auto=format&fit=crop'),
-  ('Panela en Panela 500g', 'Panela artesanal colombiana. Bloque de 500g.', 'INGREDIENTE', 4000, 2500, true, 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=1200&auto=format&fit=crop'),
-  ('Leche en Polvo 1kg', 'Leche en polvo entera. Bolsa de 1kg.', 'INGREDIENTE', 18000, 12000, true, 'https://images.unsplash.com/photo-1550583724-b2692b85b150?q=80&w=1200&auto=format&fit=crop')
-) AS v(nombre, descripcion, categoria, precio, costo, disponible, imagen)
-WHERE NOT EXISTS (
-  SELECT 1 FROM productos p WHERE p.nombre = v.nombre
-);
 
 -- ============================================
 -- INVENTARIO (10 registros)
@@ -303,12 +305,12 @@ LIMIT 10;
 -- ============================================
 -- Este archivo contiene:
 -- ✅ 4 usuarios de prueba (ADMIN, MESERO, COCINA, CLIENTE)
--- ✅ 20 productos totales:
---    - 4 BEBIDAS (Café Tinto, Café con Leche, Jugo de Naranja, Avena)
---    - 4 COMIDAS (Sandwich de Pollo, Perro Caliente, Empanada, Arepa con Queso)
---    - 4 POSTRES (Tres Leches, Flan, Helado, Brownie con Helado)
---    - 4 SNACKS (Papas Fritas, Chocorramo, Galletas de Avena, Chicharrón)
---    - 4 INGREDIENTES (Café en Grano, Azúcar, Panela, Leche en Polvo)
+-- ✅ 32 productos totales:
+--    - 7 COMIDAS RÁPIDAS (Panzerotti, Pastelitos de Pollo, Carimañolas, Buñuelos, Kibbes, Sándwich Jamón con Queso, Cubanitos)
+--    - 7 BEBIDAS (Capuchinos, Café con Leche, Café, Jugos Hit, Jugos Naturales, Gaseosa, Agua)
+--    - 1 SNACK (Mekatos)
+--    - 12 ACOMPAÑAMIENTOS (Yuca, Queso, Arepa, Chorizo, Auyama, Berenjena, Patacón, Habichuelas, Papa Cocida, Cabeza de Gato, Plátano Amarillo, Huevos)
+--    - 5 PLATOS FUERTES (Sopas, Desvare, Corrientes, Porción de Arroz, Porción de Proteína)
 -- ✅ 10 registros de inventario
 -- ✅ 10 proveedores (proveedores reales de Montería, Colombia)
 -- ✅ 10 mesas

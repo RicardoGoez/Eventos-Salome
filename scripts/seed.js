@@ -38,11 +38,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const CategoriaProducto = {
+  COMIDA_RAPIDA: 'COMIDA_RAPIDA',
   BEBIDA: 'BEBIDA',
-  COMIDA: 'COMIDA',
-  POSTRE: 'POSTRE',
   SNACK: 'SNACK',
-  INGREDIENTE: 'INGREDIENTE',
+  ACOMPANAMIENTO: 'ACOMPANAMIENTO',
+  PLATO_FUERTE: 'PLATO_FUERTE',
 };
 
 const EstadoPedido = {

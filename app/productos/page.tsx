@@ -36,7 +36,7 @@ function ProductosPageContent() {
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
-    categoria: CategoriaProducto.BEBIDA,
+    categoria: CategoriaProducto.COMIDA_RAPIDA,
     precio: 0,
     costo: 0,
     disponible: true,
@@ -109,7 +109,7 @@ function ProductosPageContent() {
       setFormData({
         nombre: "",
         descripcion: "",
-        categoria: CategoriaProducto.BEBIDA,
+        categoria: CategoriaProducto.COMIDA_RAPIDA,
         precio: 0,
         costo: 0,
         disponible: true,
@@ -305,7 +305,7 @@ function ProductosPageContent() {
                   setFormData({
                     nombre: "",
                     descripcion: "",
-                    categoria: CategoriaProducto.BEBIDA,
+                    categoria: CategoriaProducto.COMIDA_RAPIDA,
                     precio: 0,
                     costo: 0,
                     disponible: true,

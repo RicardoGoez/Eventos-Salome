@@ -14,6 +14,7 @@ import { EntradaInventario } from "@/types/domain";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { formatCOP } from "@/lib/utils";
 
 export default function EntradasInventarioPage() {
   const { toast } = useToast();
@@ -261,7 +262,7 @@ export default function EntradasInventarioPage() {
                     {formData.cantidad > 0 && formData.precioCompra > 0 && (
                       <div className="rounded-lg bg-primary/10 p-3">
                         <p className="text-sm font-medium text-primary">
-                          Total: ${totalCosto.toFixed(2)}
+                          Total: {formatCOP(totalCosto)}
                         </p>
                       </div>
                     )}
@@ -365,9 +366,9 @@ export default function EntradasInventarioPage() {
                             </TableCell>
                             <TableCell>{proveedor?.nombre || entrada.proveedorId}</TableCell>
                             <TableCell>{entrada.cantidad}</TableCell>
-                            <TableCell>${entrada.precioCompra.toFixed(2)}</TableCell>
+                            <TableCell>{formatCOP(entrada.precioCompra)}</TableCell>
                             <TableCell className="font-semibold">
-                              ${total.toFixed(2)}
+                              {formatCOP(total)}
                             </TableCell>
                             <TableCell className="text-sm">
                               {entrada.numeroFactura || "-"}

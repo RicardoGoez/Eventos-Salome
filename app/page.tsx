@@ -20,11 +20,11 @@ interface CartItem {
 }
 
 const categoriaLabels: Record<CategoriaProducto, string> = {
+  [CategoriaProducto.COMIDA_RAPIDA]: "Comidas Rápidas",
   [CategoriaProducto.BEBIDA]: "Bebidas",
-  [CategoriaProducto.COMIDA]: "Comidas",
-  [CategoriaProducto.POSTRE]: "Postres",
   [CategoriaProducto.SNACK]: "Snacks",
-  [CategoriaProducto.INGREDIENTE]: "Ingredientes",
+  [CategoriaProducto.ACOMPANAMIENTO]: "Acompañamientos",
+  [CategoriaProducto.PLATO_FUERTE]: "Platos Fuertes",
 };
 
 function HomePageContent() {

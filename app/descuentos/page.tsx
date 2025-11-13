@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Edit, Trash2, Tag } from "lucide-react";
 import { Descuento, TipoDescuento } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
+import { formatCOP } from "@/lib/utils";
 
 export default function DescuentosPage() {
   const { toast } = useToast();
@@ -346,7 +347,7 @@ export default function DescuentosPage() {
                         <TableCell>
                           {descuento.tipo === TipoDescuento.PORCENTAJE
                             ? `${descuento.valor}%`
-                            : `$${descuento.valor.toFixed(2)}`}
+                            : formatCOP(descuento.valor)}
                         </TableCell>
                         <TableCell>
                           {descuento.cantidadMinima || "-"}
