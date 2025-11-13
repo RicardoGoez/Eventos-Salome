@@ -49,6 +49,23 @@ export interface Producto {
   costo: number;
   disponible: boolean;
   imagen?: string;
+  tieneVariantes?: boolean;
+  variantes?: VarianteProducto[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface VarianteProducto {
+  id: string;
+  productoId: string;
+  producto?: Producto;
+  nombre: string;
+  descripcion?: string;
+  precio: number;
+  costo: number;
+  disponible: boolean;
+  imagen?: string;
+  orden: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -83,6 +100,8 @@ export interface ItemPedido {
   pedidoId: string;
   productoId: string;
   producto?: Producto;
+  varianteId?: string;
+  variante?: VarianteProducto;
   cantidad: number;
   precioUnitario: number;
   subtotal: number;

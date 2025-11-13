@@ -7,7 +7,7 @@ import { ProductCard } from "@/components/product-card";
 import { CartSidebar } from "@/components/cart-sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Producto, CategoriaProducto } from "@/types/domain";
+import { Producto, CategoriaProducto, VarianteProducto } from "@/types/domain";
 import { Coffee, Search, Filter, ArrowRight, MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,9 @@ import { PublicDataProvider, usePublicData } from "@/contexts/public-data-contex
 
 interface CartItem {
   producto: Producto;
+  variante?: VarianteProducto;
   cantidad: number;
+  nombreCompleto: string;
 }
 
 const categoriaLabels: Record<CategoriaProducto, string> = {
@@ -109,7 +111,18 @@ function HomePageContent() {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
       try {
-        setCartItems(JSON.parse(savedCart));
+        const parsedCart = JSON.parse(savedCart);
+        // Asegurar que todos los items tengan nombreCompleto
+        const cartWithNombreCompleto = parsedCart.map((item: any) => {
+          if (!item.nombreCompleto) {
+            const nombreCompleto = item.variante 
+              ? `${item.producto.nombre} - ${item.variante.nombre}`
+              : item.producto.nombre;
+            return { ...item, nombreCompleto };
+          }
+          return item;
+        });
+        setCartItems(cartWithNombreCompleto);
       } catch (e) {
         console.error("Error loading cart:", e);
       }
@@ -137,22 +150,46 @@ function HomePageContent() {
     return filtered;
   }, [productos, categoriaFiltro, searchQuery, getProductosPorCategoria]);
 
-  const handleAddToCart = (producto: Producto, cantidad: number) => {
+  const handleAddToCart = (producto: Producto, cantidad: number, variante?: VarianteProducto) => {
     setCartItems((prev) => {
-      const existing = prev.find((item) => item.producto.id === producto.id);
+      const nombreCompleto = variante 
+        ? `${producto.nombre} - ${variante.nombre}`
+        : producto.nombre;
+      
+      // Buscar si ya existe el mismo producto con la misma variante (o sin variante)
+      const existing = prev.find((item) => {
+        if (variante) {
+          return item.producto.id === producto.id && item.variante?.id === variante.id;
+        }
+        return item.producto.id === producto.id && !item.variante;
+      });
+      
       if (existing) {
-        return prev.map((item) =>
-          item.producto.id === producto.id
-            ? { ...item, cantidad: item.cantidad + cantidad }
-            : item
-        );
+        return prev.map((item) => {
+          if (variante) {
+            if (item.producto.id === producto.id && item.variante?.id === variante.id) {
+              return { ...item, cantidad: item.cantidad + cantidad };
+            }
+          } else {
+            if (item.producto.id === producto.id && !item.variante) {
+              return { ...item, cantidad: item.cantidad + cantidad };
+            }
+          }
+          return item;
+        });
       }
-      return [...prev, { producto, cantidad }];
+      
+      return [...prev, { 
+        producto, 
+        variante: variante || undefined,
+        cantidad,
+        nombreCompleto
+      }];
     });
 
     toast({
       title: "Producto agregado",
-      description: `${cantidad} x ${producto.nombre} agregado al carrito`,
+      description: `${cantidad} x ${variante ? `${producto.nombre} - ${variante.nombre}` : producto.nombre} agregado al carrito`,
     });
   };
 

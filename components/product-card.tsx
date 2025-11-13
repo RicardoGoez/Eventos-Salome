@@ -127,61 +127,77 @@ export function ProductCard({
 
           {producto.disponible ? (
             <div className="flex flex-col gap-1 sm:gap-1.5 md:gap-2">
-              {/* Controles de cantidad - Ultra compactos para 3 columnas */}
-              <div className="flex items-center gap-1 sm:gap-1.5 border rounded-md justify-center px-0.5 sm:px-1 py-0.5" role="group" aria-label="Controles de cantidad">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 flex-shrink-0 p-0 focus:ring-2 focus:ring-primary"
-                  onClick={() => setCantidad(Math.max(1, cantidad - 1))}
-                  disabled={cantidad <= 1}
-                  aria-label="Disminuir cantidad"
-                  aria-disabled={cantidad <= 1}
-                >
-                  <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-4 md:w-4" aria-hidden="true" />
-                </Button>
-                <span 
-                  className="w-6 sm:w-8 md:w-10 text-center font-medium text-[10px] sm:text-xs md:text-sm lg:text-base" 
-                  aria-label={`Cantidad: ${cantidad}`}
-                  role="status"
-                >
-                  {cantidad}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 flex-shrink-0 p-0 focus:ring-2 focus:ring-primary"
-                  onClick={() => setCantidad(cantidad + 1)}
-                  aria-label="Aumentar cantidad"
-                >
-                  <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-4 md:w-4" aria-hidden="true" />
-                </Button>
-              </div>
-
-              {/* Botón agregar - Compacto y funcional con animación de éxito */}
-              <Button
-                onClick={handleAddToCart}
-                disabled={isAdding || showSuccess}
-                className={cn(
-                  "w-full gap-1 sm:gap-1.5 md:gap-2 text-[10px] sm:text-xs md:text-sm lg:text-base h-8 sm:h-9 md:h-10 lg:h-11 font-semibold relative overflow-hidden transition-all duration-300",
-                  showSuccess && "bg-success hover:bg-success"
-                )}
-                size="sm"
-                aria-label={showSuccess ? "Producto agregado al carrito" : `Agregar ${cantidad} ${producto.nombre} al carrito`}
-                aria-live="polite"
-              >
-                {showSuccess ? (
-                  <>
-                    <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0 animate-in zoom-in duration-300" />
-                    <span className="truncate text-[10px] sm:text-xs md:text-sm">¡Agregado!</span>
-                  </>
-                ) : (
-                  <>
+              {/* Si tiene opciones, solo mostrar botón para ver opciones */}
+              {producto.tieneVariantes ? (
+                <Link href={`/producto/${producto.id}`}>
+                  <Button
+                    className="w-full gap-1 sm:gap-1.5 md:gap-2 text-[10px] sm:text-xs md:text-sm lg:text-base h-8 sm:h-9 md:h-10 lg:h-11 font-semibold"
+                    size="sm"
+                    aria-label={`Ver opciones de ${producto.nombre}`}
+                  >
                     <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0" aria-hidden="true" />
-                    <span className="truncate text-[10px] sm:text-xs md:text-sm">{isAdding ? "Agregando..." : "Agregar"}</span>
-                  </>
-                )}
-              </Button>
+                    <span className="truncate text-[10px] sm:text-xs md:text-sm">Ver Opciones</span>
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  {/* Controles de cantidad - Ultra compactos para 3 columnas */}
+                  <div className="flex items-center gap-1 sm:gap-1.5 border rounded-md justify-center px-0.5 sm:px-1 py-0.5" role="group" aria-label="Controles de cantidad">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 flex-shrink-0 p-0 focus:ring-2 focus:ring-primary"
+                      onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                      disabled={cantidad <= 1}
+                      aria-label="Disminuir cantidad"
+                      aria-disabled={cantidad <= 1}
+                    >
+                      <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-4 md:w-4" aria-hidden="true" />
+                    </Button>
+                    <span 
+                      className="w-6 sm:w-8 md:w-10 text-center font-medium text-[10px] sm:text-xs md:text-sm lg:text-base" 
+                      aria-label={`Cantidad: ${cantidad}`}
+                      role="status"
+                    >
+                      {cantidad}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 flex-shrink-0 p-0 focus:ring-2 focus:ring-primary"
+                      onClick={() => setCantidad(cantidad + 1)}
+                      aria-label="Aumentar cantidad"
+                    >
+                      <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-4 md:w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+
+                  {/* Botón agregar - Compacto y funcional con animación de éxito */}
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={isAdding || showSuccess}
+                    className={cn(
+                      "w-full gap-1 sm:gap-1.5 md:gap-2 text-[10px] sm:text-xs md:text-sm lg:text-base h-8 sm:h-9 md:h-10 lg:h-11 font-semibold relative overflow-hidden transition-all duration-300",
+                      showSuccess && "bg-success hover:bg-success"
+                    )}
+                    size="sm"
+                    aria-label={showSuccess ? "Producto agregado al carrito" : `Agregar ${cantidad} ${producto.nombre} al carrito`}
+                    aria-live="polite"
+                  >
+                    {showSuccess ? (
+                      <>
+                        <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0 animate-in zoom-in duration-300" />
+                        <span className="truncate text-[10px] sm:text-xs md:text-sm">¡Agregado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0" aria-hidden="true" />
+                        <span className="truncate text-[10px] sm:text-xs md:text-sm">{isAdding ? "Agregando..." : "Agregar"}</span>
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <Button 

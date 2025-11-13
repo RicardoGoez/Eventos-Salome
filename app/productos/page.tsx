@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2, Search, Upload, X, Image as ImageIcon } from "lucide-react";
-import { Producto, CategoriaProducto } from "@/types/domain";
+import { Plus, Edit, Trash2, Search, Upload, X, Image as ImageIcon, Layers } from "lucide-react";
+import { Producto, CategoriaProducto, VarianteProducto } from "@/types/domain";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { AdminWrapper } from "@/components/admin-wrapper";
@@ -44,6 +44,23 @@ function ProductosPageContent() {
   });
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isVariantesDialogOpen, setIsVariantesDialogOpen] = useState(false);
+  const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
+  const [variantes, setVariantes] = useState<VarianteProducto[]>([]);
+  const [loadingVariantes, setLoadingVariantes] = useState(false);
+  const [isVarianteDialogOpen, setIsVarianteDialogOpen] = useState(false);
+  const [editingVariante, setEditingVariante] = useState<VarianteProducto | null>(null);
+  const [varianteFormData, setVarianteFormData] = useState({
+    nombre: "",
+    descripcion: "",
+    precio: 0,
+    costo: 0,
+    disponible: true,
+    imagen: "",
+    orden: 0,
+  });
+  const [varianteImagePreview, setVarianteImagePreview] = useState<string>("");
+  const [uploadingVarianteImage, setUploadingVarianteImage] = useState(false);
 
   // Los productos se cargan desde el contexto
   // Filtrar productos (memoizado)
@@ -214,6 +231,238 @@ function ProductosPageContent() {
   const handleRemoveImage = () => {
     setFormData({ ...formData, imagen: "" });
     setImagePreview("");
+  };
+
+  const handleManageVariantes = async (producto: Producto) => {
+    setProductoSeleccionado(producto);
+    setIsVariantesDialogOpen(true);
+    await loadVariantes(producto.id);
+  };
+
+  const loadVariantes = async (productoId: string) => {
+    setLoadingVariantes(true);
+    try {
+      const response = await fetch(`/api/variantes-producto?productoId=${productoId}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setVariantes(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      console.error("Error loading variantes:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "No se pudieron cargar las opciones",
+      });
+      setVariantes([]);
+    } finally {
+      setLoadingVariantes(false);
+    }
+  };
+
+  const handleAddVariante = () => {
+    setEditingVariante(null);
+    setVarianteFormData({
+      nombre: "",
+      descripcion: "",
+      precio: 0,
+      costo: 0,
+      disponible: true,
+      imagen: "",
+      orden: variantes.length,
+    });
+    setVarianteImagePreview("");
+    setIsVarianteDialogOpen(true);
+  };
+
+  const handleEditVariante = (variante: VarianteProducto) => {
+    setEditingVariante(variante);
+    setVarianteFormData({
+      nombre: variante.nombre,
+      descripcion: variante.descripcion || "",
+      precio: variante.precio,
+      costo: variante.costo,
+      disponible: variante.disponible,
+      imagen: variante.imagen || "",
+      orden: variante.orden,
+    });
+    setVarianteImagePreview(variante.imagen || "");
+    setIsVarianteDialogOpen(true);
+  };
+
+  const handleSaveVariante = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productoSeleccionado) return;
+
+    // Validar campos requeridos
+    if (!varianteFormData.nombre.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "El nombre de la opción es requerido",
+      });
+      return;
+    }
+
+    if (varianteFormData.precio <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "El precio debe ser mayor a 0",
+      });
+      return;
+    }
+
+    setLoadingVariantes(true);
+    try {
+      const url = editingVariante
+        ? `/api/variantes-producto/${editingVariante.id}`
+        : "/api/variantes-producto";
+      const method = editingVariante ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productoId: productoSeleccionado.id,
+          nombre: varianteFormData.nombre.trim(),
+          descripcion: varianteFormData.descripcion.trim() || null,
+          precio: varianteFormData.precio,
+          costo: varianteFormData.costo || 0,
+          disponible: varianteFormData.disponible,
+          imagen: varianteFormData.imagen || null,
+          orden: varianteFormData.orden || 0,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Error al guardar variante");
+      }
+
+      toast({
+        variant: "success",
+        title: "Éxito",
+        description: editingVariante
+          ? "Opción actualizada correctamente"
+          : "Opción creada correctamente",
+      });
+
+      setIsVarianteDialogOpen(false);
+      setEditingVariante(null);
+      setVarianteImagePreview("");
+      await loadVariantes(productoSeleccionado.id);
+      loadProductos(); // Recargar productos para actualizar tiene_variantes
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Error al guardar opción",
+      });
+    } finally {
+      setLoadingVariantes(false);
+    }
+  };
+
+  const handleVarianteImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo
+    if (!file.type.startsWith("image/")) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "El archivo debe ser una imagen",
+      });
+      return;
+    }
+
+    // Validar tamaño (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "La imagen no debe exceder 5MB",
+      });
+      return;
+    }
+
+    setUploadingVarianteImage(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: uploadFormData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.error || "Error al subir la imagen",
+        });
+        return;
+      }
+
+      const data = await response.json();
+      setVarianteFormData({ ...varianteFormData, imagen: data.url });
+      setVarianteImagePreview(data.url);
+
+      toast({
+        variant: "success",
+        title: "Éxito",
+        description: "Imagen subida correctamente",
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error de conexión al subir la imagen",
+      });
+    } finally {
+      setUploadingVarianteImage(false);
+    }
+  };
+
+  const handleRemoveVarianteImage = () => {
+    setVarianteFormData({ ...varianteFormData, imagen: "" });
+    setVarianteImagePreview("");
+  };
+
+  const handleDeleteVariante = async (id: string) => {
+    if (!productoSeleccionado) return;
+
+    try {
+      const response = await fetch(`/api/variantes-producto/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al eliminar variante");
+      }
+
+      toast({
+        variant: "success",
+        title: "Éxito",
+        description: "Opción eliminada correctamente",
+      });
+
+      await loadVariantes(productoSeleccionado.id);
+      loadProductos(); // Recargar productos para actualizar tiene_variantes
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al eliminar opción",
+      });
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -503,6 +752,7 @@ function ProductosPageContent() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Imagen</TableHead>
                     <TableHead>Nombre</TableHead>
                     <TableHead>Categoría</TableHead>
                     <TableHead>Precio</TableHead>
@@ -561,6 +811,14 @@ function ProductosPageContent() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              onClick={() => handleManageVariantes(producto)}
+                              title="Gestionar opciones"
+                            >
+                              <Layers className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handleEdit(producto)}
                             >
                               <Edit className="h-4 w-4" />
@@ -605,6 +863,295 @@ function ProductosPageContent() {
             </div>
           )}
         </div>
+
+        {/* Dialog para gestionar opciones */}
+        <Dialog open={isVariantesDialogOpen} onOpenChange={setIsVariantesDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                Opciones de {productoSeleccionado?.nombre}
+              </DialogTitle>
+              <DialogDescription>
+                Gestiona las opciones de este producto (ej: tamaños, sabores, tipos)
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button onClick={handleAddVariante}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar Opción
+                </Button>
+              </div>
+              {loadingVariantes ? (
+                <div className="text-center py-8">Cargando opciones...</div>
+              ) : variantes.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No hay opciones. Agrega una para que los clientes puedan elegir.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {variantes.map((variante) => (
+                    <div
+                      key={variante.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="font-semibold">{variante.nombre}</div>
+                        {variante.descripcion && (
+                          <div className="text-sm text-gray-600">{variante.descripcion}</div>
+                        )}
+                        <div className="flex gap-4 mt-2 text-sm">
+                          <span>Precio: {formatCOP(variante.precio)}</span>
+                          <span>Costo: {formatCOP(variante.costo)}</span>
+                          <span
+                            className={
+                              variante.disponible
+                                ? "text-success"
+                                : "text-gray-medium"
+                            }
+                          >
+                            {variante.disponible ? "Disponible" : "No disponible"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditVariante(variante)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Eliminar opción?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción eliminará la opción &quot;{variante.nombre}&quot;.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteVariante(variante.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para agregar/editar opción */}
+        <Dialog open={isVarianteDialogOpen} onOpenChange={setIsVarianteDialogOpen}>
+          <DialogContent>
+            <form onSubmit={handleSaveVariante}>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingVariante ? "Editar Opción" : "Nueva Opción"}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingVariante
+                    ? "Modifica la información de la opción"
+                    : "Completa la información de la nueva opción"}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="variante-nombre">Nombre de la opción *</Label>
+                  <Input
+                    id="variante-nombre"
+                    value={varianteFormData.nombre}
+                    onChange={(e) =>
+                      setVarianteFormData({
+                        ...varianteFormData,
+                        nombre: e.target.value,
+                      })
+                    }
+                    placeholder="Ej: 1 Litro, De Carne, De Mora"
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="variante-descripcion">Descripción</Label>
+                  <Input
+                    id="variante-descripcion"
+                    value={varianteFormData.descripcion}
+                    onChange={(e) =>
+                      setVarianteFormData({
+                        ...varianteFormData,
+                        descripcion: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="variante-precio">Precio *</Label>
+                  <Input
+                    id="variante-precio"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={varianteFormData.precio}
+                    onChange={(e) =>
+                      setVarianteFormData({
+                        ...varianteFormData,
+                        precio: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="variante-costo">Costo</Label>
+                  <Input
+                    id="variante-costo"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={varianteFormData.costo}
+                    onChange={(e) =>
+                      setVarianteFormData({
+                        ...varianteFormData,
+                        costo: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="variante-imagen">Imagen de la Opción</Label>
+                  <div className="space-y-2">
+                    {varianteImagePreview || varianteFormData.imagen ? (
+                      <div className="relative inline-block">
+                        <img
+                          src={varianteImagePreview || varianteFormData.imagen}
+                          alt="Vista previa"
+                          className="h-32 w-32 rounded-lg object-cover border border-gray-300"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                          onClick={handleRemoveVarianteImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center w-full">
+                        <label
+                          htmlFor="variante-imagen-upload"
+                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-2 text-gray-600" />
+                            <p className="mb-2 text-sm text-gray-700">
+                              <span className="font-semibold">Click para subir</span> o arrastra y suelta
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              PNG, JPG, WEBP (MAX. 5MB)
+                            </p>
+                          </div>
+                          <input
+                            id="variante-imagen-upload"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleVarianteImageUpload}
+                            disabled={uploadingVarianteImage}
+                          />
+                        </label>
+                      </div>
+                    )}
+                    {uploadingVarianteImage && (
+                      <p className="text-sm text-muted-foreground">
+                        Subiendo imagen...
+                      </p>
+                    )}
+                    {varianteFormData.imagen && (
+                      <div className="mt-2">
+                        <Label htmlFor="variante-imagen-url" className="text-xs text-gray-600">
+                          O ingresa una URL:
+                        </Label>
+                        <Input
+                          id="variante-imagen-url"
+                          value={varianteFormData.imagen}
+                          onChange={(e) => {
+                            setVarianteFormData({
+                              ...varianteFormData,
+                              imagen: e.target.value,
+                            });
+                            setVarianteImagePreview(e.target.value);
+                          }}
+                          placeholder="https://..."
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="variante-orden">Orden</Label>
+                  <Input
+                    id="variante-orden"
+                    type="number"
+                    value={varianteFormData.orden}
+                    onChange={(e) =>
+                      setVarianteFormData({
+                        ...varianteFormData,
+                        orden: parseInt(e.target.value) || 0,
+                      })
+                    }
+                  />
+                  <p className="text-xs text-gray-500">
+                    El orden determina cómo se muestran las opciones (menor número = primero)
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="variante-disponible"
+                    checked={varianteFormData.disponible}
+                    onChange={(e) =>
+                      setVarianteFormData({
+                        ...varianteFormData,
+                        disponible: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="variante-disponible">Disponible</Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsVarianteDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={loadingVariantes}>
+                  {loadingVariantes ? "Guardando..." : "Guardar"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

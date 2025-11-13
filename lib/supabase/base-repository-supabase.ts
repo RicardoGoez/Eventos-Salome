@@ -46,6 +46,8 @@ const SPECIAL_CAMEL_TO_SNAKE: Record<string, string> = {
   numeroPedidosCancelados: 'numero_pedidos_cancelados',
   diferenciaEfectivo: 'diferencia_efectivo',
   entidadId: 'entidad_id',
+  varianteId: 'variante_id',
+  tieneVariantes: 'tiene_variantes',
 };
 
 // Mapeo inverso para convertir snake_case a camelCase
@@ -76,6 +78,8 @@ const SPECIAL_SNAKE_TO_CAMEL: Record<string, string> = {
   numero_pedidos_cancelados: 'numeroPedidosCancelados',
   diferencia_efectivo: 'diferenciaEfectivo',
   entidad_id: 'entidadId',
+  variante_id: 'varianteId',
+  tiene_variantes: 'tieneVariantes',
 };
 
 // Función para convertir camelCase a snake_case
@@ -115,7 +119,7 @@ export function dbToDomain<T>(dbObj: any): T {
   for (const key in dbObj) {
     if (dbObj.hasOwnProperty(key)) {
       // Ignorar relaciones anidadas que vienen de Supabase (se manejan por separado)
-      if (key === 'items_pedido' || key === 'producto' || key === 'cliente' || key === 'mesa' || key === 'descuento_aplicado' || key === 'inventario_item' || key === 'proveedor' || key === 'usuario') {
+      if (key === 'items_pedido' || key === 'producto' || key === 'cliente' || key === 'mesa' || key === 'descuento_aplicado' || key === 'inventario_item' || key === 'proveedor' || key === 'usuario' || key === 'variantes') {
         continue;
       }
       

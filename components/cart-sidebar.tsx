@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ShoppingCart, Plus, Minus, Trash2, X } from "lucide-react";
-import { Producto } from "@/types/domain";
+import { Producto, VarianteProducto } from "@/types/domain";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { CheckoutDialog } from "@/components/checkout-dialog";
@@ -15,7 +15,9 @@ import { cn } from "@/lib/utils";
 
 interface CartItem {
   producto: Producto;
+  variante?: VarianteProducto;
   cantidad: number;
+  nombreCompleto: string;
 }
 
 interface CartSidebarProps {
@@ -43,7 +45,10 @@ export function CartSidebar({
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
 
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.producto.precio * item.cantidad,
+    (sum, item) => {
+      const precio = item.variante ? item.variante.precio : item.producto.precio;
+      return sum + precio * item.cantidad;
+    },
     0
   );
   const iva = subtotal * 0.16;
@@ -136,10 +141,10 @@ export function CartSidebar({
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm truncate">
-                      {item.producto.nombre}
+                      {item.nombreCompleto || item.producto.nombre}
                     </h4>
                     <p className="text-primary font-bold mt-1">
-                      {formatCOP(item.producto.precio)}
+                      {formatCOP(item.variante ? item.variante.precio : item.producto.precio)}
                     </p>
 
                     {/* Controles */}

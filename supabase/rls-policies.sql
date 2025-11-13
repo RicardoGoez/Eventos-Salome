@@ -36,6 +36,7 @@ CREATE POLICY "acceso_completo_pedidos" ON pedidos FOR ALL USING (true) WITH CHE
 CREATE POLICY "acceso_completo_items_pedido" ON items_pedido FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "acceso_completo_cierres_caja" ON cierres_caja FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "acceso_completo_actividades_auditoria" ON actividades_auditoria FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "acceso_completo_variantes_producto" ON variantes_producto FOR ALL USING (true) WITH CHECK (true);
 
 -- ============================================
 -- 🔹 Asignar permisos a los roles del sistema

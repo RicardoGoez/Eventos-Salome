@@ -40,6 +40,39 @@ CREATE TABLE productos (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- TABLA: variantes_producto
+CREATE TABLE IF NOT EXISTS variantes_producto (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    producto_id UUID NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    precio DECIMAL(10, 2) NOT NULL CHECK (precio >= 0),
+    costo DECIMAL(10, 2) NOT NULL CHECK (costo >= 0),
+    disponible BOOLEAN DEFAULT true,
+    imagen TEXT,
+    orden INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(producto_id, nombre)
+);
+
+-- Índices para variantes
+CREATE INDEX IF NOT EXISTS idx_variantes_producto_id ON variantes_producto(producto_id);
+CREATE INDEX IF NOT EXISTS idx_variantes_producto_disponible ON variantes_producto(disponible);
+
+-- Trigger para actualizar updated_at en variantes
+CREATE TRIGGER update_variantes_producto_updated_at 
+BEFORE UPDATE ON variantes_producto
+FOR EACH ROW 
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Agregar columna para indicar si un producto tiene variantes
+ALTER TABLE productos 
+ADD COLUMN IF NOT EXISTS tiene_variantes BOOLEAN DEFAULT false;
+
+-- Índice para productos con variantes
+CREATE INDEX IF NOT EXISTS idx_productos_tiene_variantes ON productos(tiene_variantes);
+
 -- TABLA: inventario_items
 CREATE TABLE inventario_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -280,6 +313,7 @@ ALTER TABLE pedidos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE items_pedido ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cierres_caja ENABLE ROW LEVEL SECURITY;
 ALTER TABLE actividades_auditoria ENABLE ROW LEVEL SECURITY;
+ALTER TABLE variantes_producto ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- STORAGE (Supabase Storage)
