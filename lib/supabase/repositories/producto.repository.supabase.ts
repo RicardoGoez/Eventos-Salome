@@ -30,8 +30,9 @@ export class ProductoRepositorySupabase extends BaseRepositorySupabase<Producto>
     
     // Procesar variantes si existen
     if (data.variantes && Array.isArray(data.variantes)) {
-      producto.variantes = data.variantes.map((v: any) => dbToDomain<VarianteProducto>(v));
-      producto.tieneVariantes = producto.variantes.length > 0;
+      const variantes = data.variantes.map((v: any) => dbToDomain<VarianteProducto>(v));
+      producto.variantes = variantes;
+      producto.tieneVariantes = variantes.length > 0;
     } else {
       producto.tieneVariantes = false;
       producto.variantes = [];
