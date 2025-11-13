@@ -272,7 +272,7 @@ export default function InventarioPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Producto ID</TableHead>
+                    <TableHead>Producto</TableHead>
                     <TableHead>Cantidad</TableHead>
                     <TableHead>Cantidad Mínima</TableHead>
                     <TableHead>Unidad</TableHead>
@@ -298,7 +298,12 @@ export default function InventarioPage() {
                         }
                       >
                         <TableCell className="font-medium">
-                          {item.productoId}
+                          {item.producto?.nombre || item.productoId}
+                          {item.producto?.categoria && (
+                            <span className="ml-2 text-xs text-gray-500">
+                              ({item.producto.categoria})
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <span
@@ -341,7 +346,7 @@ export default function InventarioPage() {
                   <DialogTitle>Ajustar Stock</DialogTitle>
                   <DialogDescription>
                     {selectedItem && (
-                      <>Producto: {selectedItem.productoId} - Stock actual: {selectedItem.cantidad}</>
+                      <>Producto: {selectedItem.producto?.nombre || selectedItem.productoId} - Stock actual: {selectedItem.cantidad}</>
                     )}
                   </DialogDescription>
                 </DialogHeader>

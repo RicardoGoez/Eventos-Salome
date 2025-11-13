@@ -7,10 +7,36 @@ export class InventarioRepositorySupabase extends BaseRepositorySupabase<Inventa
     super(supabase, 'inventario_items');
   }
 
+  async findAll(): Promise<InventarioItem[]> {
+    const { data, error } = await this.supabase
+      .from('inventario_items')
+      .select(`
+        *,
+        producto:productos(id, nombre, categoria, precio, costo, disponible, imagen)
+      `);
+
+    if (error) {
+      throw new Error(`Error finding all inventario items: ${error.message}`);
+    }
+
+    if (!data) return [];
+
+    return data.map((item: any) => {
+      const inventarioItem = dbToDomain<InventarioItem>(item);
+      if (item.producto) {
+        inventarioItem.producto = dbToDomain(item.producto);
+      }
+      return inventarioItem;
+    });
+  }
+
   async findByProductoId(productoId: string): Promise<InventarioItem | null> {
     const { data, error } = await this.supabase
       .from('inventario_items')
-      .select('*')
+      .select(`
+        *,
+        producto:productos(id, nombre, categoria, precio, costo, disponible, imagen)
+      `)
       .eq('producto_id', productoId)
       .single();
 
@@ -19,7 +45,13 @@ export class InventarioRepositorySupabase extends BaseRepositorySupabase<Inventa
       throw new Error(`Error finding inventario item by producto_id: ${error.message}`);
     }
 
-    return data ? dbToDomain<InventarioItem>(data) : null;
+    if (!data) return null;
+
+    const inventarioItem = dbToDomain<InventarioItem>(data);
+    if (data.producto) {
+      inventarioItem.producto = dbToDomain(data.producto);
+    }
+    return inventarioItem;
   }
 
   async findBajoStock(): Promise<InventarioItem[]> {
@@ -32,14 +64,25 @@ export class InventarioRepositorySupabase extends BaseRepositorySupabase<Inventa
   async findByUbicacion(ubicacion: string): Promise<InventarioItem[]> {
     const { data, error } = await this.supabase
       .from('inventario_items')
-      .select('*')
+      .select(`
+        *,
+        producto:productos(id, nombre, categoria, precio, costo, disponible, imagen)
+      `)
       .eq('ubicacion', ubicacion);
 
     if (error) {
       throw new Error(`Error finding inventario items by ubicacion: ${error.message}`);
     }
 
-    return dbToDomain<InventarioItem[]>(data || []);
+    if (!data) return [];
+
+    return data.map((item: any) => {
+      const inventarioItem = dbToDomain<InventarioItem>(item);
+      if (item.producto) {
+        inventarioItem.producto = dbToDomain(item.producto);
+      }
+      return inventarioItem;
+    });
   }
 
   async findProximosVencimiento(dias: number = 7): Promise<InventarioItem[]> {
@@ -49,7 +92,10 @@ export class InventarioRepositorySupabase extends BaseRepositorySupabase<Inventa
 
     const { data, error } = await this.supabase
       .from('inventario_items')
-      .select('*')
+      .select(`
+        *,
+        producto:productos(id, nombre, categoria, precio, costo, disponible, imagen)
+      `)
       .not('fecha_vencimiento', 'is', null)
       .gte('fecha_vencimiento', ahora.toISOString())
       .lte('fecha_vencimiento', fechaLimite.toISOString());
@@ -58,7 +104,15 @@ export class InventarioRepositorySupabase extends BaseRepositorySupabase<Inventa
       throw new Error(`Error finding inventario items proximos vencimiento: ${error.message}`);
     }
 
-    return dbToDomain<InventarioItem[]>(data || []);
+    if (!data) return [];
+
+    return data.map((item: any) => {
+      const inventarioItem = dbToDomain<InventarioItem>(item);
+      if (item.producto) {
+        inventarioItem.producto = dbToDomain(item.producto);
+      }
+      return inventarioItem;
+    });
   }
 }
 
