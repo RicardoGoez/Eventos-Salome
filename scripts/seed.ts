@@ -130,11 +130,11 @@ async function seed() {
         disponible: true,
         imagen: null,
       },
-      // COMIDA
+      // COMIDA_RAPIDA
       {
         nombre: "Sandwich de Pollo",
         descripcion: "Sandwich con pollo asado, lechuga y tomate",
-        categoria: CategoriaProducto.COMIDA,
+        categoria: CategoriaProducto.COMIDA_RAPIDA,
         precio: 85.00,
         costo: 35.00,
         disponible: true,
@@ -143,7 +143,7 @@ async function seed() {
       {
         nombre: "Bagel con Queso Crema",
         descripcion: "Bagel tostado con queso crema y salmón",
-        categoria: CategoriaProducto.COMIDA,
+        categoria: CategoriaProducto.COMIDA_RAPIDA,
         precio: 75.00,
         costo: 30.00,
         disponible: true,
@@ -152,7 +152,7 @@ async function seed() {
       {
         nombre: "Ensalada César",
         descripcion: "Ensalada con pollo, crutones y aderezo césar",
-        categoria: CategoriaProducto.COMIDA,
+        categoria: CategoriaProducto.COMIDA_RAPIDA,
         precio: 90.00,
         costo: 38.00,
         disponible: true,
@@ -161,37 +161,9 @@ async function seed() {
       {
         nombre: "Quesadilla",
         descripcion: "Quesadilla de queso con salsa",
-        categoria: CategoriaProducto.COMIDA,
+        categoria: CategoriaProducto.COMIDA_RAPIDA,
         precio: 70.00,
         costo: 28.00,
-        disponible: true,
-        imagen: null,
-      },
-      // POSTRES
-      {
-        nombre: "Pastel de Chocolate",
-        descripcion: "Pastel de chocolate belga",
-        categoria: CategoriaProducto.POSTRE,
-        precio: 65.00,
-        costo: 25.00,
-        disponible: true,
-        imagen: null,
-      },
-      {
-        nombre: "Cheesecake",
-        descripcion: "Cheesecake de fresa",
-        categoria: CategoriaProducto.POSTRE,
-        precio: 70.00,
-        costo: 28.00,
-        disponible: true,
-        imagen: null,
-      },
-      {
-        nombre: "Brownie",
-        descripcion: "Brownie con nueces",
-        categoria: CategoriaProducto.POSTRE,
-        precio: 45.00,
-        costo: 18.00,
         disponible: true,
         imagen: null,
       },
